@@ -16,8 +16,8 @@ class AdventOfCodeTest extends WordSpec with Matchers {
         }
         "The all modules fuel usage function" should {
           "gives the right sum" in {
-            Day1.Part1.computeSumOfFuelRequirements(Iterator(12,14)) shouldBe 4
-            Day1.Part1.computeSumOfFuelRequirements(Iterator(14,1969)) shouldBe 656
+            Day1.Part1.computeSumOfFuelRequirements(Iterator(12, 14)) shouldBe 4
+            Day1.Part1.computeSumOfFuelRequirements(Iterator(14, 1969)) shouldBe 656
           }
         }
         "With the given input I" should {
@@ -44,6 +44,27 @@ class AdventOfCodeTest extends WordSpec with Matchers {
         }
       }
     }
+    "Day2" should {
+      "Part1" should {
+        "Computer" should {
+          "be able to execute simple program" in {
+            Day2.Part1.executeProgram(Array(1,0,0,0,99)) shouldBe Array(2,0,0,0,99)
+            Day2.Part1.executeProgram(Array(2,3,0,3,99)) shouldBe Array(2,3,0,6,99)
+            Day2.Part1.executeProgram(Array(2,4,4,5,99,0)) shouldBe Array(2,4,4,5,99,9801)
+            Day2.Part1.executeProgram(Array(1,1,1,4,99,5,6,0,99)) shouldBe Array(30,1,1,4,2,5,6,0,99)
+          }
+          "be able to run with the provided input file" in {
+            Day2.Part1.executeInputFile() shouldBe 5482655
+          }
+        }
+      }
+      "Part2" should {
+        "Computer" should {
+          "find the right noun and verb" in {
+            Day2.Part2.executeInputFile(19690720) shouldBe 4967
+          }
+        }
+      }
+    }
   }
-
 }
