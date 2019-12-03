@@ -48,10 +48,10 @@ class AdventOfCodeTest extends WordSpec with Matchers {
       "Part1" should {
         "Computer" should {
           "be able to execute simple program" in {
-            Day2.Part1.executeProgram(Array(1,0,0,0,99)) shouldBe Array(2,0,0,0,99)
-            Day2.Part1.executeProgram(Array(2,3,0,3,99)) shouldBe Array(2,3,0,6,99)
-            Day2.Part1.executeProgram(Array(2,4,4,5,99,0)) shouldBe Array(2,4,4,5,99,9801)
-            Day2.Part1.executeProgram(Array(1,1,1,4,99,5,6,0,99)) shouldBe Array(30,1,1,4,2,5,6,0,99)
+            Day2.Part1.executeProgram(Array(1, 0, 0, 0, 99)) shouldBe Array(2, 0, 0, 0, 99)
+            Day2.Part1.executeProgram(Array(2, 3, 0, 3, 99)) shouldBe Array(2, 3, 0, 6, 99)
+            Day2.Part1.executeProgram(Array(2, 4, 4, 5, 99, 0)) shouldBe Array(2, 4, 4, 5, 99, 9801)
+            Day2.Part1.executeProgram(Array(1, 1, 1, 4, 99, 5, 6, 0, 99)) shouldBe Array(30, 1, 1, 4, 2, 5, 6, 0, 99)
           }
           "be able to run with the provided input file" in {
             Day2.Part1.executeInputFile() shouldBe 5482655
@@ -63,6 +63,34 @@ class AdventOfCodeTest extends WordSpec with Matchers {
           "find the right noun and verb" in {
             Day2.Part2.executeInputFile(19690720) shouldBe 4967
           }
+        }
+      }
+    }
+    "Day3" should {
+      "Part1" should {
+        "work with basic examples" in {
+          Day3.Part1.closestIntersection(
+            """R75,D30,R83,U83,L12,D49,R71,U7,L72
+              |U62,R66,U55,R34,D71,R55,D58,R83""".stripMargin) shouldBe 159
+          Day3.Part1.closestIntersection(
+            """R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51
+              |U98,R91,D20,R16,D67,R40,U7,R15,U6,R7""".stripMargin) shouldBe 135
+        }
+        "compute the right result with the given input file" in {
+          Day3.Part1.computeForInputFile() shouldBe 1225
+        }
+      }
+      "Part2" should {
+        "be able to compute the best intersection with basics examples" in {
+          Day3.Part2.bestIntersection(
+            """R75,D30,R83,U83,L12,D49,R71,U7,L72
+              |U62,R66,U55,R34,D71,R55,D58,R83""".stripMargin) shouldBe 610
+          Day3.Part2.bestIntersection(
+            """R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51
+              |U98,R91,D20,R16,D67,R40,U7,R15,U6,R7""".stripMargin) shouldBe 410
+        }
+        "compute the best interestion with the given input file" in {
+          Day3.Part2.computeForInputFile() shouldBe 107036
         }
       }
     }
