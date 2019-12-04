@@ -94,5 +94,38 @@ class AdventOfCodeTest extends WordSpec with Matchers {
         }
       }
     }
+    "Day4" should {
+      "Part1" should {
+        "provides helper functions" should {
+          "passwordFromStringToIntArray" in {
+            Day4.Part1.passwordFromStringToIntArray("012345") shouldBe Array(0,1,2,3,4,5)
+          }
+        }
+        "implement a password checker" in {
+          Day4.Part1.checkStringValidity("111111") shouldBe true
+          Day4.Part1.checkStringValidity("123349") shouldBe true
+          Day4.Part1.checkStringValidity("001389") shouldBe true
+          Day4.Part1.checkStringValidity("223450") shouldBe false
+          Day4.Part1.checkStringValidity("123789") shouldBe false
+        }
+        "return valid password count between a given range" in {
+          Day4.Part1.validPasswordCount("153517","630395") should not be 63551 // Too high value
+          Day4.Part1.validPasswordCount("153517","630395") shouldBe 1729
+        }
+      }
+      "Part2" should {
+        "provides an additional constraint on the number of repeated digits" in  {
+          Day4.Part2.checkStringValidity("111111") shouldBe false
+          Day4.Part2.checkStringValidity("111122") shouldBe true
+          Day4.Part2.checkStringValidity("123349") shouldBe true
+          Day4.Part2.checkStringValidity("001389") shouldBe true
+          Day4.Part2.checkStringValidity("223450") shouldBe false
+          Day4.Part2.checkStringValidity("123789") shouldBe false
+        }
+      }
+      "return valid password count between a given range with the new constraint" in {
+        Day4.Part2.validPasswordCount("153517","630395") shouldBe 1172
+      }
+    }
   }
 }
