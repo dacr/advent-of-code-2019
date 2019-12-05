@@ -127,5 +127,20 @@ class AdventOfCodeTest extends WordSpec with Matchers {
         Day4.Part2.validPasswordCount("153517","630395") shouldBe 1172
       }
     }
+    "Day5" should {
+      "Part1" should {
+        "engine compute simple programs" in {
+          Day5.Part1.execute("1002,4,3,4,33", 1)._1 shouldBe Vector(1002,4,3,4,99)
+          Day5.Part1.execute("11102,1,2,0,99", 1)._1 shouldBe Vector(11102,1,2,2,99)
+          Day5.Part1.execute("1101,100,-1,4,0", 1)._1 shouldBe Vector(1101,100,-1,4,99)
+        }
+        "engine execute provided program with 1 as input" in {
+          val (finalState, results) = Day5.Part1.executeInputFile()
+          results.head shouldBe 9219874
+        }
+      }
+      "Part2" should {
+      }
+    }
   }
 }

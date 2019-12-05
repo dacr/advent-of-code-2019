@@ -1,7 +1,6 @@
 package adventofcode
 
 import better.files._
-
 import scala.math._
 
 object Day2 {
