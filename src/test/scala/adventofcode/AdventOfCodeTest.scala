@@ -140,6 +140,19 @@ class AdventOfCodeTest extends WordSpec with Matchers {
         }
       }
       "Part2" should {
+        "engine execute simple programs with the right result" in {
+          val program =
+            """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
+              |1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
+              |999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99""".stripMargin.replaceAll("\n", "")
+          Day5.Part2.execute(program, 5)._2.head shouldBe 999
+          Day5.Part2.execute(program, 8)._2.head shouldBe 1000
+          Day5.Part2.execute(program, 42)._2.head shouldBe 1001
+        }
+        "engine execute provided program with 1 as input" in {
+          val (finalState, results) = Day5.Part2.executeInputFile()
+          results.head shouldBe 5893654
+        }
       }
     }
   }
