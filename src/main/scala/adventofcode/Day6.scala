@@ -1,10 +1,6 @@
 package adventofcode
 
 import better.files._
-import com.sun.corba.se.impl.orbutil.graph.NodeData
-
-import scala.annotation.tailrec
-
 
 object Day6 {
 
@@ -12,11 +8,11 @@ object Day6 {
 
   case class Tree(node: Node, children: List[Tree])
 
-  def buildTree(treeDesc: String): Tree = {
+  def buildTree(treeDesc: String, connectionMarkerRegex:String="[)]"): List[Tree] = {
     val connections =
       treeDesc
         .split("\n")
-        .map(_.split("[)]", 2))
+        .map(_.split(connectionMarkerRegex, 2))
         .map { case Array(aName, bName) => Node(aName) -> Node(bName) }
         .toList
         .groupMap { case (a, _) => a } { case (_, b) => b }
@@ -32,8 +28,7 @@ object Day6 {
           .map(node => build(node,newRemainingConnections))
       Tree(fromNode, subtrees)
     }
-    assert(rootNodes.size == 1)
-    build(rootNodes.head, connections)
+    rootNodes.toList.map(rootNode => build(rootNode, connections))
   }
 
 
@@ -48,7 +43,7 @@ object Day6 {
     }
 
     def executeWithInputString(input: String): Int = {
-      val tree: Tree = buildTree(input)
+      val tree: Tree = buildTree(input).head
       treeDepthsSum(tree)
     }
 
@@ -70,7 +65,7 @@ object Day6 {
         else {
           current
             .children
-            //.to[LazyList]
+            .to(LazyList)
             .map(subTree => searchDistance(subTree, node, depth+1))
             .find(_.isDefined)
             .flatten
@@ -94,7 +89,7 @@ object Day6 {
     }
 
     def executeWithInputString(input: String): Int = {
-      val tree: Tree = buildTree(input)
+      val tree: Tree = buildTree(input).head
       distanceBetween(tree, Node("SAN"), Node("YOU")).map(_ - 2).getOrElse(-1)
     }
 
