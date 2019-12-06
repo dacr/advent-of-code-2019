@@ -176,6 +176,28 @@ class AdventOfCodeTest extends WordSpec with Matchers {
           Day6.Part1.executeWithInputFile() shouldBe 234446
         }
       }
+      "Part2" should {
+        "implement a tree distance algorithm" in {
+          val treeDesc =
+            """COM)B
+              |B)C
+              |C)D
+              |D)E
+              |E)F
+              |B)G
+              |G)H
+              |D)I
+              |E)J
+              |J)K
+              |K)L
+              |K)YOU
+              |I)SAN""".stripMargin
+          Day6.Part2.executeWithInputString(treeDesc) shouldBe 4
+        }
+        "give the right result with the input file" in {
+          Day6.Part2.executeWithInputFile() shouldBe 385
+        }
+      }
     }
   }
 }
