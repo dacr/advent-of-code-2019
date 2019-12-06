@@ -100,17 +100,17 @@ class AdventOfCodeTest extends WordSpec with Matchers {
           "passwordFromStringToIntArray" in {
             Day4.Part1.passwordFromStringToIntArray("012345") shouldBe Array(0,1,2,3,4,5)
           }
-        }
-        "implement a password checker" in {
-          Day4.Part1.checkStringValidity("111111") shouldBe true
-          Day4.Part1.checkStringValidity("123349") shouldBe true
-          Day4.Part1.checkStringValidity("001389") shouldBe true
-          Day4.Part1.checkStringValidity("223450") shouldBe false
-          Day4.Part1.checkStringValidity("123789") shouldBe false
-        }
-        "return valid password count between a given range" in {
-          Day4.Part1.validPasswordCount("153517","630395") should not be 63551 // Too high value
-          Day4.Part1.validPasswordCount("153517","630395") shouldBe 1729
+          "implement a password checker" in {
+            Day4.Part1.checkStringValidity("111111") shouldBe true
+            Day4.Part1.checkStringValidity("123349") shouldBe true
+            Day4.Part1.checkStringValidity("001389") shouldBe true
+            Day4.Part1.checkStringValidity("223450") shouldBe false
+            Day4.Part1.checkStringValidity("123789") shouldBe false
+          }
+          "return valid password count between a given range" in {
+            Day4.Part1.validPasswordCount("153517","630395") should not be 63551 // Too high value
+            Day4.Part1.validPasswordCount("153517","630395") shouldBe 1729
+          }
         }
       }
       "Part2" should {
@@ -122,9 +122,9 @@ class AdventOfCodeTest extends WordSpec with Matchers {
           Day4.Part2.checkStringValidity("223450") shouldBe false
           Day4.Part2.checkStringValidity("123789") shouldBe false
         }
-      }
-      "return valid password count between a given range with the new constraint" in {
-        Day4.Part2.validPasswordCount("153517","630395") shouldBe 1172
+        "return valid password count between a given range with the new constraint" in {
+          Day4.Part2.validPasswordCount("153517","630395") shouldBe 1172
+        }
       }
     }
     "Day5" should {
@@ -152,6 +152,28 @@ class AdventOfCodeTest extends WordSpec with Matchers {
         "engine execute provided program with 1 as input" in {
           val (finalState, results) = Day5.Part2.executeInputFile()
           results.head shouldBe 5893654
+        }
+      }
+    }
+    "Day6" should {
+      "Part1" should {
+        "be able to build and compute depths sum" in {
+          val treeDesc =
+            """COM)B
+              |B)C
+              |C)D
+              |D)E
+              |E)F
+              |B)G
+              |G)H
+              |D)I
+              |E)J
+              |J)K
+              |K)L""".stripMargin
+          Day6.Part1.executeWithInputString(treeDesc) shouldBe 42
+        }
+        "be able to find the result of the provided file" in {
+          Day6.Part1.executeWithInputFile() shouldBe 234446
         }
       }
     }
