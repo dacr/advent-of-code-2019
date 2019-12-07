@@ -1,6 +1,7 @@
 package adventofcode
 
 import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.OptionValues._
 
 class AdventOfCodeTest extends WordSpec with Matchers {
   "Advent of code" must {
@@ -196,6 +197,27 @@ class AdventOfCodeTest extends WordSpec with Matchers {
         }
         "give the right result with the input file" in {
           Day6.Part2.executeWithInputFile() shouldBe 385
+        }
+      }
+    }
+    "Day7" should {
+      "Part1" should {
+        "engine compute" should {
+          "still as previously although its new inputs management" in {
+            Day7.Part1.execute("1002,4,3,4,33", 1::Nil) match {case (newProg,_) => newProg shouldBe Vector(1002,4,3,4,99) }
+            Day7.Part1.execute("11102,1,2,0,99", 1::Nil) match {case (newProg,_) => newProg shouldBe Vector(11102,1,2,2,99) }
+            Day7.Part1.execute("1101,100,-1,4,0", 1::Nil) match {case (newProg,_) => newProg shouldBe Vector(1101,100,-1,4,99) }
+            val program =
+              """3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,
+                |1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,
+                |999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99""".stripMargin.replaceAll("\n", "")
+            Day7.Part1.execute(program, 5::Nil) match { case (_,result::_) => result shouldBe 999}
+            Day7.Part1.execute(program, 8::Nil) match { case (_,result::_) => result shouldBe 1000}
+            Day7.Part1.execute(program, 42::Nil) match { case (_,result::_) => result shouldBe 1001}
+          }
+          "return the maximum result for provided input file" in {
+            Day7.Part1.amplifyInputFile() shouldBe 99376
+          }
         }
       }
     }
