@@ -135,24 +135,9 @@ object Day7 {
   object Part2 {
 
 
-    def readValue(program: Vector[Int], paramPos: Int, paramMode: Int): Int = {
-      paramMode match {
-        case 0 => program(program(paramPos)) // address mode
-        case 1 => program(paramPos) // immediate mode
-      }
-    }
-
-    def writeValue(program: Vector[Int], paramPos: Int, paramMode: Int, value: Int): Vector[Int] = {
-      paramMode match {
-        case 0 => program.updated(program(paramPos), value) // address mode
-        case 1 => program.updated(paramPos, value) // immediate mode
-      }
-    }
-
 
     object ProgramActor {
       sealed trait ProgramMessage
-
       case class Setup(linkedTo:ActorRef[Input], lastResponseTo:ActorRef[EngineActor.Control]) extends ProgramMessage
       case class Input(value:Int) extends ProgramMessage
 
@@ -168,6 +153,20 @@ object Day7 {
           Behaviors.receiveMessage { case message:Input =>
             process(context, code, replyTo, lastResponseTo, pointer, inputs :+ message.value, lastOutput)
         }
+
+      def readValue(program: Vector[Int], paramPos: Int, paramMode: Int): Int = {
+        paramMode match {
+          case 0 => program(program(paramPos)) // address mode
+          case 1 => program(paramPos) // immediate mode
+        }
+      }
+
+      def writeValue(program: Vector[Int], paramPos: Int, paramMode: Int, value: Int): Vector[Int] = {
+        paramMode match {
+          case 0 => program.updated(program(paramPos), value) // address mode
+          case 1 => program.updated(paramPos, value) // immediate mode
+        }
+      }
 
       def process(context:ActorContext[ProgramMessage], code: Vector[Int], replyTo:ActorRef[Input], lastResponseTo:ActorRef[EngineActor.Control], pointer:Int, inputs:Vector[Int], lastOutput:Option[Int]): Behavior[ProgramMessage] = {
         val instruction = code(pointer).toString
@@ -235,14 +234,12 @@ object Day7 {
     object EngineActor {
 
       sealed trait Control
-
-      case class Start(code:Vector[Int], value:Int, configurations:Iterable[Int]) extends Control
+      case class Start(code:Vector[Int], value:Int, configurations:Iterable[Int], replyTo:ActorRef[SolverActor.SolveMessage]) extends Control
       case class Result(value:Option[Int], from:ActorRef[ProgramActor.ProgramMessage]) extends Control
-
 
       def apply():Behavior[Control] = Behaviors.setup{ context =>
         Behaviors.receiveMessage {
-          case Start(code, value, configurations) =>
+          case Start(code, value, configurations, replyTo) =>
             // Create processing actors
             val programActors = configurations.zipWithIndex.map{ case (config, position) =>
               val actorName = "system-"+configurations.mkString+"-"+position
@@ -263,8 +260,8 @@ object Day7 {
             val lastProgramActorRef = programActors.last
 
             Behaviors.receiveMessage{
-              case Result(value, from) if from == lastProgramActorRef =>
-                println(s"***$value*** for ${configurations.mkString("-")}") // TODO ENHANCE AND SEND RESULTS A RESULT MANAGER
+              case Result(Some(value), from) if from == lastProgramActorRef =>
+                replyTo ! SolverActor.Result(value)
                 Behaviors.stopped
               case Result(value, from) => // we don't care about them
                 //println(s"!!!!! ***$value*** for ${configurations.mkString("-")} from ${from.path}")
@@ -275,31 +272,54 @@ object Day7 {
     }
 
 
+    object SolverActor {
+      sealed trait SolveMessage
+      case class Start(code:Vector[Int], value:Int, publishTo:ActorRef[BestResult]) extends SolveMessage
+      case class Result(value:Int) extends SolveMessage
+      case class BestResult(value:Int) extends SolveMessage
 
-
-    def executeAmplify(code: Vector[Int], configurations: Iterable[Int], input: Int): Int = {
-      val system: ActorSystem[EngineActor.Control] = ActorSystem(EngineActor(), "solver")
-      implicit val ec = system.executionContext
-      system ! EngineActor.Start(code, 0, configurations)
-      val future = system.whenTerminated
-      Await.ready(future, 30.seconds) // TODO - TO IMPROVE
-      42 // TODO - GET FINAL RESULTS MAX OF ALL
-    }
-
-    def amplify(code: Vector[Int], input: Int): Int = {
-      val results: Iterator[Int] = for {
-        permutation <- 5.to(9).permutations
-      } yield {
-        executeAmplify(code, permutation, input)
+      def apply():Behavior[SolveMessage] = {
+        Behaviors.setup {context =>
+          Behaviors.receiveMessage{
+            case Start(code, initValue, publishTo) =>
+              5.to(9).permutations.foreach{ permutation =>
+                val engine = context.spawn(EngineActor(), "check-"+permutation.mkString)
+                engine ! EngineActor.Start(code,initValue, permutation, context.self)
+              }
+              val requiredResponseCount = 5.to(9).permutations.size
+              listenToResponses(requiredResponseCount, publishTo)
+          }
+        }
       }
-      results.max
+
+      def listenToResponses(requiredResponseCount: Int, publishTo:ActorRef[BestResult], currentBest:Int=0):Behavior[SolveMessage] = {
+        if (requiredResponseCount ==0) {
+          println("BEST RESULT IS "+currentBest)
+          publishTo ! BestResult(currentBest)
+          Behaviors.stopped
+        }
+        else Behaviors.receiveMessage {
+          case Result(value) if value > currentBest => listenToResponses(requiredResponseCount-1, publishTo, value)
+          case Result(_)  => listenToResponses(requiredResponseCount-1, publishTo, currentBest)
+        }
+      }
     }
 
-    def amplify(program: String, input: Int): Int = amplify(program.split(",").toVector.map(_.toInt), input)
+//  STARTED using test case ! no longer needed
+//    def amplify(code: Vector[Int], input: Int): Int = {
+//      val system: ActorSystem[SolverActor.SolveMessage] = ActorSystem(SolverActor(), "solver")
+//      implicit val ec = system.executionContext
+//      system ! SolverActor.Start(code, 0, system)
+//      val future = system.whenTerminated
+//      Await.ready(future, 30.seconds) // TODO - TO IMPROVE
+//      42
+//    }
 
-    def amplifyInputFile(): Int = {
+    def stringToCode(program:String):Vector[Int] = program.split(",").toVector.map(_.toInt)
+
+    def fileToCode(): Vector[Int] = {
       val inputFile = "data" / "day7" / "part1" / "input.txt"
-      amplify(inputFile.contentAsString, 0)
+      stringToCode(inputFile.contentAsString)
     }
   }
 
