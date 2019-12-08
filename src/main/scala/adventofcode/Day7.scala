@@ -264,7 +264,7 @@ object Day7 {
 
             Behaviors.receiveMessage{
               case Result(value, from) if from == lastProgramActorRef =>
-                println(s"***$value*** for ${configurations.mkString("-")}")
+                println(s"***$value*** for ${configurations.mkString("-")}") // TODO ENHANCE AND SEND RESULTS A RESULT MANAGER
                 Behaviors.stopped
               case Result(value, from) => // we don't care about them
                 //println(s"!!!!! ***$value*** for ${configurations.mkString("-")} from ${from.path}")
@@ -282,8 +282,8 @@ object Day7 {
       implicit val ec = system.executionContext
       system ! EngineActor.Start(code, 0, configurations)
       val future = system.whenTerminated
-      Await.ready(future, 30.seconds)
-      42
+      Await.ready(future, 30.seconds) // TODO - TO IMPROVE
+      42 // TODO - GET FINAL RESULTS MAX OF ALL
     }
 
     def amplify(code: Vector[Int], input: Int): Int = {
