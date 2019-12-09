@@ -7,7 +7,6 @@ import better.files._
 
 object Day9 {
 
-  object Part1 {
 
     class Code(val program:Vector[BigInt]) {
       private def updated(pointer: Int, value: BigInt):Code = {
@@ -190,14 +189,8 @@ object Day9 {
     def fileToCode(inputFile: File = "data" / "day9" / "part1" / "input.txt"): Code = {
       stringToCode(inputFile.contentAsString)
     }
-  }
 
 
 
-  // ========================================================================================
-
-  object Part2 {
-
-  }
 
 }
