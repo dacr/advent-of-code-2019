@@ -27,6 +27,15 @@ class Day9Part1Test extends ScalaTestWithActorTestKit with WordSpecLike {
             val response = engineProbe.expectMessageType[EngineActor.Result]
             response.value shouldBe Some(BigInt("1125899906842624"))
           }
+          "provide the right results with the provided file input" in {
+            val engineProbe = createTestProbe[EngineActor.Control]()
+            val code = fileToCode()
+            val programActor = spawn(ProgramActor(code))
+            programActor ! ProgramActor.Setup(None, engineProbe.ref)
+            programActor ! ProgramActor.Input(1)
+            val response = engineProbe.expectMessageType[EngineActor.Result]
+            response.value shouldBe Some(BigInt("42"))
+          }
         }
       }
     }
