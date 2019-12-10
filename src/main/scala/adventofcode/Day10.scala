@@ -16,19 +16,32 @@ object Day10 {
     override def toString() = zones.map(_.map{case Free => "." case Asteroid => "#"}.mkString).mkString("\n")
   }
 
+  def isHidden(area: Area, altPosX: Double, altPosY: Double, posX: Double, posY: Double): Boolean = {
+    val deltaX = altPosX - posX
+    val deltaY = altPosY - posY
+    assert(deltaX != 0 && deltaY != 0)
+    if (deltaX >= deltaY) {
+      val incX = if (deltaX < 0) -1 else 1
+
+    } else {
+      val incY = if (deltaY < 0) -1 else 1
+    }
+  }
+
   def countVisible(area: Area, zoneX: Int, zoneY: Int): Int = {
     val posX=zoneX+0.5d
     val posY=zoneY+0.5d
-    var mutatedArea = area.copy()
-    for {
+    //var mutatedArea = area.copy()
+    val result = for {
       altZoneY <- 0 until area.height
       altZoneX <- 0 until area.width
       if altZoneX != zoneX && altZoneY != zoneY
-      altY=altZoneY+0.5d
-      altX=altZoneX+0.5d
+      altPosY=altZoneY+0.5d
+      altPosX=altZoneX+0.5d
     } yield {
-
+      if (isHidden(area, altPosX, altPosY, posX, posY)) 0 else 1
     }
+    result.sum
   }
 
   def searchBestAsteroid(area:Area):(Int,Int) = {
