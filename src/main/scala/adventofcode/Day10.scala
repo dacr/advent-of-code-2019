@@ -34,7 +34,7 @@ object Day10 {
       y += dy
       i += 1
       if ( area.get(x.toInt, y.toInt) == Asteroid &&
-        (x - x.toInt == 0.5d) && (y - y.toInt == 0.5d )
+        ( (x - x.toInt - 0.5d).abs < 0.001d) && ( (y - y.toInt - 0.5d).abs < 0.001d ) // TAKE CARE OF ERROR MARGIN, when step=0.333333... for example
       ) result = true
     }
     result
@@ -51,7 +51,6 @@ object Day10 {
       altPosX=BigDecimal(altZoneX)+0.5d
       altPosY=BigDecimal(altZoneY)+0.5d
     } yield {
-      //println(s"$zoneX $zoneY vs $altZoneX $altZoneY")
       if (isHidden(area, altPosX, altPosY, posX, posY)) 0 else 1
     }
     result.sum

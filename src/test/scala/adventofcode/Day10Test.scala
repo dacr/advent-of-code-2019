@@ -12,15 +12,33 @@ class Day10Test extends WordSpec with Matchers {
         "isHidden" should {
           "return false when position is adjacent" in {
             isHidden(stringToArea("##"), 0.5, 0.5, 1.5,0.5) shouldBe false
+            isHidden(stringToArea("##"), 1.5, 0.5, 0.5,0.5) shouldBe false
+            isHidden(stringToArea("#\n#"), 0.5, 0.5, 0.5,1.5) shouldBe false
+            isHidden(stringToArea("#\n#"), 0.5, 1.5, 0.5,0.5) shouldBe false
+            isHidden(stringToArea("#.\n.#"), 0.5, 0.5, 1.5,1.5) shouldBe false
+            isHidden(stringToArea("#.\n.#"), 1.5, 1.5, 0.5,0.5) shouldBe false
+            isHidden(stringToArea(".#\n#."), 1.5, 0.5, 0.5,1.5) shouldBe false
+            isHidden(stringToArea(".#\n#."), 0.5, 1.5, 1.5,0.5) shouldBe false
+          }
+          "return falses when not adjacent and not hidden" in {
+            isHidden(stringToArea("#.#"), 0.5, 0.5, 2.5,0.5) shouldBe false
+            isHidden(stringToArea("#.#"), 2.5, 0.5, 0.5,0.5) shouldBe false
+            isHidden(stringToArea("#\n.\n#"), 0.5, 0.5, 0.5,2.5) shouldBe false
+            isHidden(stringToArea("#\n.\n#"), 0.5, 2.5, 0.5,0.5) shouldBe false
           }
           "return true when position is hidden by an other asteroid horizontally" in {
             isHidden(stringToArea("###"), 0.5, 0.5, 2.5, 0.5) shouldBe true
+            isHidden(stringToArea("###"), 2.5, 0.5, 0.5, 0.5) shouldBe true
           }
           "return true when position is hidden by an other asteroid vertically" in {
             isHidden(stringToArea("#\n#\n#"), 0.5, 0.5, 0.5, 2.5) shouldBe true
+            isHidden(stringToArea("#\n#\n#"), 0.5, 2.5, 0.5, 0.5) shouldBe true
           }
           "return true when position is hidden by an other asteroid diagonally" in {
             isHidden(stringToArea("#..\n.#.\n..#"), 0.5, 0.5, 2.5,2.5) shouldBe true
+            isHidden(stringToArea("#..\n.#.\n..#"), 2.5, 2.5, 0.5,0.5) shouldBe true
+            isHidden(stringToArea("..#\n.#.\n#.."), 2.5, 0.5, 0.5,2.5) shouldBe true
+            isHidden(stringToArea("..#\n.#.\n#.."), 0.5, 2.5, 2.5,0.5) shouldBe true
           }
         }
 
@@ -258,6 +276,9 @@ class Day10Test extends WordSpec with Matchers {
               |.##.#..###
               |##...#..#.
               |.#....####""".stripMargin.trim.stripMargin
+          isHidden(stringToArea(areaString), 6.5d, 3.5d ,0.5d,1.5d) shouldBe true
+          countVisible(stringToArea(areaString), 0,1) should not be 34
+          countVisible(stringToArea(areaString), 5,8) shouldBe 33
           searchBestAsteroid(stringToArea(areaString)) shouldBe 33
         }
         "simple map 3" in {
