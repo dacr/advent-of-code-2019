@@ -18,7 +18,7 @@ class Day11Test extends ScalaTestWithActorTestKit with WordSpecLike {
           response.panelCount should not be 5181 // too high
           response.panelCount should not be 1317 // too low
           response.panelCount should not be 1318 // too low
-          response.panelCount shouldBe 42
+          response.panelCount shouldBe 2319
         }
       }
     }

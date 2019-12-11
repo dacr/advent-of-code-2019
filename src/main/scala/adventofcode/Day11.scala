@@ -162,27 +162,36 @@ object Day11 {
   object Left extends Direction {override def toString="Left"}
   object Right extends Direction {override def toString="Right"}
 
-  case class Area(zones:Vector[Vector[Char]]) {
+  case class Cell(color:Char='.', paintedCount:Int=0) {
+    def isBlack():Boolean = color == '.'
+    def isWhite():Boolean = color != '.'
+
+    override def toString()=color.toString
+    def changeToWhite(): Cell = Cell('#', paintedCount+1)
+    def changeToBlack(): Cell = Cell('.',paintedCount)
+    def hasBeenPaintedAtLeastOnce() = paintedCount > 0
+  }
+
+  case class Area(zones:Vector[Vector[Cell]]) {
     val width = zones.head.size
     val height = zones.size
     override def toString() = zones.map(_.mkString).mkString("\n")
-    def get(x: Int, y: Int): Char = zones(y)(x)
+    def get(x: Int, y: Int): Cell = zones(y)(x)
 
-    def paint(x:Int, y:Int, color:Char):Area = Area(zones.updated(y, zones(y).updated(x, color)))
-    def paintWhite(x: Int, y:Int): Area = paint(x,y,'#')
-    def paintBlack(x: Int, y:Int): Area = paint(x,y,'.')
-    def painted():Iterable[(BigDecimal,BigDecimal)] = {
+    def paintWhite(x: Int, y:Int): Area = Area(zones.updated(y, zones(y).updated(x, get(x,y).changeToWhite())))
+    def paintBlack(x: Int, y:Int): Area = Area(zones.updated(y, zones(y).updated(x, get(x,y).changeToBlack())))
+    def painted():Iterable[(Int,Int)] = {
       for {
         y <- 0 until height
         x <- 0 until width
-        if get(x,y) == '#'
+        if get(x,y).hasBeenPaintedAtLeastOnce
       } yield (x,y)
     }
     def paintedCount():Int = painted.size
   }
   object Area {
     def apply(width:Int, height:Int):Area = {
-      Area(Vector.fill(height)(Vector.fill(width)('.')))
+      Area(Vector.fill(height)(Vector.fill(width)(Cell())))
     }
   }
 
@@ -209,17 +218,15 @@ object Day11 {
 
     def move(position: (Int, Int), direction: Direction): (Int, Int) = direction match {
       case Up => position match {case (x,y) => (x,y-1)}
-      case Down =>position match {case (x,y) => (x,y+1)}
-      case Left =>position match {case (x,y) => (x-1,y)}
+      case Down => position match {case (x,y) => (x,y+1)}
+      case Left => position match {case (x,y) => (x-1,y)}
       case Right => position match {case (x,y) => (x+1,y)}
     }
 
     def drive(programActor:ActorRef[ProgramActor.Input], listenActor:ActorRef[ListenActor.Response], area:Area, direction:Direction, position: (Int, Int)):Behavior[Control] = {
       position match {
-        case (x,y) if area.get(x,y) == '.' =>
-          programActor ! ProgramActor.Input(0)
-        case (x,y) if area.get(x,y) == '#' =>
-          programActor ! ProgramActor.Input(1)
+        case (x,y) if area.get(x,y).isBlack() => programActor ! ProgramActor.Input(0)
+        case (x,y) if area.get(x,y).isWhite() => programActor ! ProgramActor.Input(1)
       }
       Behaviors.receiveMessage{
         case Output(color) =>
@@ -231,14 +238,14 @@ object Day11 {
             case Output(turnInstruction) if turnInstruction == 0 =>
               val newDirection = turnLeft(direction)
               val newPosition = move(position, newDirection)
-              println(s"paint $color, turnLeft $direction->$newDirection and move to $position->$newPosition")
-              println(newArea)
+//              println(s"paint $color, turnLeft $direction->$newDirection and move to $position->$newPosition")
+//              println(newArea)
               drive(programActor, listenActor, newArea, newDirection, newPosition)
             case Output(turnInstruction) if turnInstruction == 1 =>
               val newDirection = turnRight(direction)
               val newPosition = move(position, newDirection)
-              println(s"paint $color, turnRight $direction->$newDirection and move to $position->$newPosition")
-              println(newArea)
+//              println(s"paint $color, turnRight $direction->$newDirection and move to $position->$newPosition")
+//              println(newArea)
               drive(programActor, listenActor, newArea, newDirection, newPosition)
           }
         case result:Result =>
@@ -251,9 +258,9 @@ object Day11 {
     def apply(code:Code, listenActor:ActorRef[ListenActor.Response]):Behavior[Control] = Behaviors.setup{ context =>
       val programActor = context.spawn(ProgramActor(code), "program")
       programActor ! ProgramActor.Setup(Some(context.self), Some(context.self))
-      //val area = Area(160,140)
+      val area = Area(160,140)
       //val area = Area(500,500)
-      val area = Area(4,4)
+      //val area = Area(4,4)
       drive(programActor, listenActor, area, Up, (area.width / 2, area.height / 2))
     }
   }
