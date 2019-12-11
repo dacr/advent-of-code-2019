@@ -2,13 +2,13 @@ package adventofcode
 
 import org.scalatest.{Matchers, WordSpec}
 import better.files._
+import org.scalatest.OptionValues._
 
 class Day10Test extends WordSpec with Matchers {
   "Advent of code" must {
     "Day10" should {
+      import Day10._
       "Part1" should {
-        import Day10._
-
         "isHidden" should {
           "return false when position is adjacent" in {
             isHidden(stringToArea("##"), 0.5, 0.5, 1.5,0.5) shouldBe false
@@ -48,7 +48,7 @@ class Day10Test extends WordSpec with Matchers {
               |.#.
               |...
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 0
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 0
         }
         "basic 2" in {
           val areaString =
@@ -56,19 +56,19 @@ class Day10Test extends WordSpec with Matchers {
               |...
               |...
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 0
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 0
         }
         "basic 3" in {
           val areaString =
             """.
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 0
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 0
         }
         "basic 4" in {
           val areaString =
             """.###.
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 2
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 2
         }
         "basic 4-1" in {
           resultString(stringToArea(".###.")) shouldBe ".121."
@@ -79,7 +79,7 @@ class Day10Test extends WordSpec with Matchers {
           val areaString =
             """..##.....#
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 2
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 2
         }
         "basic 6" in {
           val areaString =
@@ -90,7 +90,7 @@ class Day10Test extends WordSpec with Matchers {
               |.
               |.
               |#""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 2
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 2
         }
         "basic 6-1" in {
           resultString(stringToArea(".###.".toCharArray.mkString("\n"))) shouldBe ".121.".toCharArray.mkString("\n")
@@ -103,7 +103,7 @@ class Day10Test extends WordSpec with Matchers {
               |..#
               |.#.
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 2
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 2
         }
         "basic 8" in {
           val areaString =
@@ -122,7 +122,7 @@ class Day10Test extends WordSpec with Matchers {
               |.##
               |.#.
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 5
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 5
         }
         "basic 10" in {
           val areaString =
@@ -141,7 +141,7 @@ class Day10Test extends WordSpec with Matchers {
               |.#.
               |..#
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 2
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 2
         }
         "simple map 0A-1" in {
           val areaString =
@@ -181,7 +181,7 @@ class Day10Test extends WordSpec with Matchers {
               |.2..
               |....
               |..1.""".stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 2
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 2
         }
         "simple map 0B" in {
           val areaString =
@@ -189,7 +189,7 @@ class Day10Test extends WordSpec with Matchers {
               |.##
               |..#
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 3
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 3
         }
         "simple map 0C" in {
           val areaString =
@@ -197,7 +197,7 @@ class Day10Test extends WordSpec with Matchers {
               |.#.#
               |..#.
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 3
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 3
         }
         "simple map 0D" in {
           val areaString =
@@ -205,7 +205,7 @@ class Day10Test extends WordSpec with Matchers {
               |.#..#
               |..#..
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 3
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 3
         }
         "simple map 0E" in {
           val areaString =
@@ -214,7 +214,7 @@ class Day10Test extends WordSpec with Matchers {
               |..#
               |.#.
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 3
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 3
         }
         "simple map 0F" in {
           val areaString =
@@ -223,7 +223,7 @@ class Day10Test extends WordSpec with Matchers {
               |.##
               |.#.
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 4
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 4
         }
         "simple map 0F resultsMap" in {
           val areaString =
@@ -247,7 +247,7 @@ class Day10Test extends WordSpec with Matchers {
               |....#
               |...##
               |""".trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 8
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 8
         }
         "simple map 1 resultsMap" in {
           val areaString =
@@ -279,7 +279,7 @@ class Day10Test extends WordSpec with Matchers {
           isHidden(stringToArea(areaString), 6.5d, 3.5d ,0.5d,1.5d) shouldBe true
           countVisible(stringToArea(areaString), 0,1) should not be 34
           countVisible(stringToArea(areaString), 5,8) shouldBe 33
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 33
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 33
         }
         "simple map 3" in {
           val areaString =
@@ -293,7 +293,7 @@ class Day10Test extends WordSpec with Matchers {
               |..##....##
               |......#...
               |.####.###.""".stripMargin.trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 35
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 35
         }
         "simple map 4" in {
           val areaString =
@@ -307,7 +307,7 @@ class Day10Test extends WordSpec with Matchers {
               |#..#.#.###
               |.##...##.#
               |.....#.#..""".stripMargin.trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 41
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 41
         }
         "simple map 5" in {
           val areaString =
@@ -331,10 +331,26 @@ class Day10Test extends WordSpec with Matchers {
               |.#.#.###########.###
               |#.#.#.#####.####.###
               |###.##.####.##.#..##""".stripMargin.trim.stripMargin
-          searchBestAsteroid(stringToArea(areaString)) shouldBe 210
+          countForBestAsteroid(stringToArea(areaString)) shouldBe 210
         }
         "with provided input file" in {
-          searchBestAsteroid(fileToArea("data" / "day10" / "input.txt")) shouldBe 263
+          countForBestAsteroid(fileToArea("data" / "day10" / "input.txt")) shouldBe 263
+        }
+      }
+      "Part2" should {
+        "angle compute" should {
+          "adjust start angle" in {
+            computeAngle( (10,10), (10,5)) shouldBe 0
+            computeAngle( (10,10), (15,10)) shouldBe Math.PI/2
+            computeAngle( (10,10), (10,15)) shouldBe Math.PI
+            computeAngle( (10,10), (5,10)) shouldBe 3*Math.PI/2
+          }
+
+          "compute with the given file" in {
+            val results = destroy(fileToArea("data" / "day10" / "input.txt"))
+            val (x,y) = results.drop(199).head
+            x.toInt*100+y.toInt shouldBe 1110
+          }
         }
       }
     }

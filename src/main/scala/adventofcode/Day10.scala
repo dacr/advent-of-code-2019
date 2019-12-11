@@ -17,8 +17,21 @@ object Day10 {
       else zones(y)(x)
     }
     override def toString() = zones.map(_.map{case Free => "." case Asteroid => "#"}.mkString).mkString("\n")
+    def asteroids():Iterable[(BigDecimal,BigDecimal)] = {
+      for {
+        y <- 0 until height
+        x <- 0 until width
+        if get(x,y) == Asteroid
+      } yield {
+        (x+0.5d,y+0.5d)
+      }
+    }
   }
-
+  def isHidden(area:Area, alt:(BigDecimal,BigDecimal), pos:(BigDecimal,BigDecimal)):Boolean = {
+    val (altPosX,altPosY) = alt
+    val (posX,posY) = pos
+    isHidden(area,altPosX, altPosY, posX, posY)
+  }
   def isHidden(area: Area, altPosX: BigDecimal, altPosY: BigDecimal, posX: BigDecimal, posY: BigDecimal): Boolean = {
     var dx = (altPosX - posX)
     var dy = (altPosY - posY)
@@ -65,17 +78,20 @@ object Day10 {
       }.mkString("\n")
   }
 
-  def searchBestAsteroid(area:Area):Int = {
+  def searchBestAsteroid(area:Area):Option[((BigDecimal,BigDecimal),Int)] = {
     val result = for {
       y <- 0 until area.height
       x <- 0 until area.width
       if area.get(x,y)==Asteroid
     } yield {
-      (x,y) -> countVisible(area,x,y)
+      (BigDecimal(x)+0.5d,BigDecimal(y)+0.5d) -> countVisible(area,x,y)
     }
-
     result
       .maxByOption{case (_, count) => count}
+  }
+
+  def countForBestAsteroid(area:Area):Int = {
+    searchBestAsteroid(area)
       .map {case (pos,count)=>count}
       .getOrElse(0)
   }
@@ -94,4 +110,40 @@ object Day10 {
     stringToArea(inputFile.contentAsString)
   }
 
+  // ---------------------------------------------------
+  // Part2
+
+  def computeAngle(station: (BigDecimal, BigDecimal), asteroidPos: (BigDecimal, BigDecimal)): BigDecimal = {
+    val (sx,sy)=station
+    val (ax,ay)=asteroidPos
+
+    val angle = math.atan2( (ay-sy).toDouble, (ax-sx).toDouble)+Math.PI/2
+
+    if (angle < 0 ) angle + 2*Math.PI else angle
+  }
+
+  def destroy(area:Area): Seq[(BigDecimal, BigDecimal)] = {
+    searchBestAsteroid(area) match {
+      case None => Seq.empty
+      case Some((station,_)) =>
+        val angles: Seq[(BigDecimal, (BigDecimal, BigDecimal))] =
+          area
+            .asteroids()
+            .filterNot(_ == station)
+            .toList
+            .map(asteroidPos => computeAngle(station,asteroidPos)-> asteroidPos)
+            .sortBy{case (angle, asteroidPos) => angle}
+
+        def destroy(remaining:Seq[(BigDecimal, (BigDecimal, BigDecimal))], destroyed:Seq[(BigDecimal,BigDecimal)]):Seq[(BigDecimal,BigDecimal)] = {
+          if (destroyed.size == angles.size) destroyed
+          else if (remaining.size == 0 ) destroy(angles, destroyed)
+          else {
+            val (_, asteroid) = remaining.head
+            if (isHidden(area, asteroid, station)) destroy(remaining.tail, destroyed)
+            else destroy(remaining.tail, destroyed:+asteroid)
+          }
+        }
+        destroy(Seq.empty, Seq.empty)
+    }
+  }
 }
