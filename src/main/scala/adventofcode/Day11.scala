@@ -178,7 +178,9 @@ object Day11 {
     override def toString() = zones.map(_.mkString).mkString("\n")
     def get(x: Int, y: Int): Cell = zones(y)(x)
 
+    def paintWhite(pos:(Int,Int)): Area = pos match {case (x,y) => Area(zones.updated(y, zones(y).updated(x, get(x,y).changeToWhite()))) }
     def paintWhite(x: Int, y:Int): Area = Area(zones.updated(y, zones(y).updated(x, get(x,y).changeToWhite())))
+    def paintBlack(pos:(Int,Int)): Area = pos match {case (x,y) => Area(zones.updated(y, zones(y).updated(x, get(x,y).changeToBlack()))) }
     def paintBlack(x: Int, y:Int): Area = Area(zones.updated(y, zones(y).updated(x, get(x,y).changeToBlack())))
     def painted():Iterable[(Int,Int)] = {
       for {
@@ -255,13 +257,13 @@ object Day11 {
       }
     }
 
-    def apply(code:Code, listenActor:ActorRef[ListenActor.Response]):Behavior[Control] = Behaviors.setup{ context =>
+    def apply(code:Code, listenActor:ActorRef[ListenActor.Response], startBlack:Boolean=true):Behavior[Control] = Behaviors.setup{ context =>
       val programActor = context.spawn(ProgramActor(code), "program")
       programActor ! ProgramActor.Setup(Some(context.self), Some(context.self))
       val area = Area(160,140)
-      //val area = Area(500,500)
-      //val area = Area(4,4)
-      drive(programActor, listenActor, area, Up, (area.width / 2, area.height / 2))
+      val startPosition = (area.width / 2, area.height / 2)
+      if (startBlack) drive(programActor, listenActor, area, Up, startPosition) // PART 1
+      else drive(programActor, listenActor, area.paintWhite(startPosition), Up, startPosition) // PART 2
     }
   }
 
