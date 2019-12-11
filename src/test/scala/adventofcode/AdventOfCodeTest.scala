@@ -235,12 +235,5 @@ class AdventOfCodeTest extends WordSpec with Matchers {
         }
       }
     }
-    "Day10" should {
-      "Part1" should {
-        "" in {
-
-        }
-      }
-    }
   }
 }
