@@ -334,7 +334,7 @@ class Day10Test extends WordSpec with Matchers {
           searchBestAsteroid(stringToArea(areaString)) shouldBe 210
         }
         "with provided input file" in {
-          searchBestAsteroid(fileToArea("data" / "day10" / "input.txt")) shouldBe 42
+          searchBestAsteroid(fileToArea("data" / "day10" / "input.txt")) shouldBe 263
         }
       }
     }
