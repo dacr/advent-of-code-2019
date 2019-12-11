@@ -305,20 +305,9 @@ object Day7 {
       }
     }
 
-//  STARTED using test case ! no longer needed
-//    def amplify(code: Vector[Int], input: Int): Int = {
-//      val system: ActorSystem[SolverActor.SolveMessage] = ActorSystem(SolverActor(), "solver")
-//      implicit val ec = system.executionContext
-//      system ! SolverActor.Start(code, 0, system)
-//      val future = system.whenTerminated
-//      Await.ready(future, 30.seconds) // TODO - TO IMPROVE
-//      42
-//    }
-
     def stringToCode(program:String):Vector[Int] = program.split(",").toVector.map(_.toInt)
 
-    def fileToCode(): Vector[Int] = {
-      val inputFile = "data" / "day7" / "part1" / "input.txt"
+    def fileToCode(inputFile:File = "data" / "day11" / "input.txt"): Vector[Int] = {
       stringToCode(inputFile.contentAsString)
     }
   }
