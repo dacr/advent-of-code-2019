@@ -90,10 +90,30 @@ object Day12 {
 
     @inline def impact(v1:Long,v2:Long):Long = if (v1 < v2 ) +1L else if (v1 > v2) -1L else 0L
 
-    @inline def gravityImpactFor(that: Moon, becauseOfThis: Moon): Unit = {
-      that.velocity.x += impact(that.position.x, becauseOfThis.position.x)
-      that.velocity.y += impact(that.position.y, becauseOfThis.position.y)
-      that.velocity.z += impact(that.position.z, becauseOfThis.position.z)
+    @inline def impactGravity(a: Moon, b: Moon): Unit = {
+      if (a.position.x < b.position.x) {
+        a.velocity.x += 1
+        b.velocity.x -= 1
+      } else if (a.position.x > b.position.x) {
+        a.velocity.x -= 1
+        b.velocity.x += 1
+      }
+
+      if (a.position.y < b.position.y) {
+        a.velocity.y += 1
+        b.velocity.y -= 1
+      } else if (a.position.y > b.position.y) {
+        a.velocity.y -= 1
+        b.velocity.y += 1
+      }
+
+      if (a.position.z < b.position.z) {
+        a.velocity.z += 1
+        b.velocity.z -= 1
+      } else if (a.position.z > b.position.z) {
+        a.velocity.z -= 1
+        b.velocity.z += 1
+      }
     }
 
     @inline def moonsHash(moons:List[Moon]):Long = moons.foldLeft(0L) { case (code, c) => 31L*code + c.hash }
@@ -115,8 +135,8 @@ object Day12 {
       var currentMoons:Array[Moon] = moons.toArray
       var currentHash:Long = -1
       var steps = 0L
-      val indexCombinationsA = 0.until(currentMoons.size).combinations(2).map{case IndexedSeq(a,b) => a}.toArray
-      val indexCombinationsB = 0.until(currentMoons.size).combinations(2).map{case IndexedSeq(a,b) => b}.toArray
+      val indexCombinationsA = 0.until(moons.size).combinations(2).map{case IndexedSeq(a,b) => a}.toArray
+      val indexCombinationsB = 0.until(moons.size).combinations(2).map{case IndexedSeq(a,b) => b}.toArray
 
       val changes = Array.fill(moons.size)(new Vect(0,0,0))
       println("START")
@@ -135,8 +155,7 @@ object Day12 {
         while(i < indexCombinationsA.length) {
           val a = indexCombinationsA(i)
           val b = indexCombinationsB(i)
-          gravityImpactFor(currentMoons(a), currentMoons(b) )
-          gravityImpactFor(currentMoons(b), currentMoons(a) )
+          impactGravity(currentMoons(a), currentMoons(b) )
           i+=1
         }
 
