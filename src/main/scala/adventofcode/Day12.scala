@@ -56,15 +56,23 @@ object Day12 {
     }
 
     def howManyStepsToGoBackToAnAlreadySeenState(moons:List[Moon]): Long = {
-      var knownStates = Set.empty[Long]
+      //var knownStates = Set.empty[Long]
 
+      val referenceMoons = MoonList(moons)
       var currentMoons:MoonList = MoonList(moons)
-      var steps = 0
+      var steps = 0L
       println("START")
-      while(! knownStates.contains(currentMoons.hash))  {
-        knownStates += currentMoons.hash
+      //while(! knownStates.contains(currentMoons.hash))  {
+      while(currentMoons.hash != referenceMoons)  {
+        //knownStates += currentMoons.hash
         if (steps % 100000 == 0) println(steps)
         // update velocity by applying gravity
+//        val velocityChanges =
+//          currentMoons.moons
+//            .combinations(2)
+//            .toList
+//            .flatMap { case List(a, b) => List(a -> gravityImpactFor(a, b), b -> gravityImpactFor(b, a)) }
+//            .groupMapReduce { case (m, _) => m } { case (_, c) => c } { (c1, c2) => c1.add(c2) }
         val velocityChanges =
           currentMoons.moons
             .combinations(2)
@@ -74,7 +82,7 @@ object Day12 {
 
         // update position by applying velocity
         currentMoons = MoonList(velocityChanges.map { case (moon, changes) => moon.move(moon.velocity.add(changes)) }.toList)
-        steps+=1
+        steps+=1L
       }
       steps
     }
