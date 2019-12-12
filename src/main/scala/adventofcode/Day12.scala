@@ -88,34 +88,6 @@ object Day12 {
       def hash = 31*(id + 31L*(position.x + 31L*(position.y + 31L*(position.z + 31L*(velocity.x + 31L*(velocity.y + 31L*velocity.z))))))
     }
 
-    @inline def impact(v1:Long,v2:Long):Long = if (v1 < v2 ) +1L else if (v1 > v2) -1L else 0L
-
-    @inline def impactGravity(a: Moon, b: Moon): Unit = {
-      if (a.position.x < b.position.x) {
-        a.velocity.x += 1
-        b.velocity.x -= 1
-      } else if (a.position.x > b.position.x) {
-        a.velocity.x -= 1
-        b.velocity.x += 1
-      }
-
-      if (a.position.y < b.position.y) {
-        a.velocity.y += 1
-        b.velocity.y -= 1
-      } else if (a.position.y > b.position.y) {
-        a.velocity.y -= 1
-        b.velocity.y += 1
-      }
-
-      if (a.position.z < b.position.z) {
-        a.velocity.z += 1
-        b.velocity.z -= 1
-      } else if (a.position.z > b.position.z) {
-        a.velocity.z -= 1
-        b.velocity.z += 1
-      }
-    }
-
     @inline def moonsHash(moons:List[Moon]):Long = moons.foldLeft(0L) { case (code, c) => 31L*code + c.hash }
     @inline def moonsHash(moons:Array[Moon]):Long = {
       var code = 0L
@@ -132,30 +104,47 @@ object Day12 {
       //var knownStates = Set.empty[Long]
 
       val referenceHash = moonsHash(moons)
-      var currentMoons:Array[Moon] = moons.toArray
-      var currentHash:Long = -1
+      val currentMoons:Array[Moon] = moons.toArray
+      var currentHash:Long = -1L
       var steps = 0L
       val indexCombinationsA = 0.until(moons.size).combinations(2).map{case IndexedSeq(a,b) => a}.toArray
       val indexCombinationsB = 0.until(moons.size).combinations(2).map{case IndexedSeq(a,b) => b}.toArray
 
-      val changes = Array.fill(moons.size)(new Vect(0,0,0))
       println("START")
       var i=0
       //while(currentHash != referenceHash && steps < limit)  {
       while(currentHash != referenceHash && steps < limit)  {
-        if (steps % 100000000L == 0L) println(steps)
-
-        i=0
-        while (i < changes.length) {
-          changes(i).reset()
-          i+=1
-        }
+        if (steps % 100_000_000L == 0L) println(steps)
 
         i=0
         while(i < indexCombinationsA.length) {
-          val a = indexCombinationsA(i)
-          val b = indexCombinationsB(i)
-          impactGravity(currentMoons(a), currentMoons(b) )
+          val a = currentMoons(indexCombinationsA(i))
+          val b = currentMoons(indexCombinationsB(i))
+
+          if (a.position.x < b.position.x) {
+            a.velocity.x += 1L
+            b.velocity.x -= 1L
+          } else if (a.position.x > b.position.x) {
+            a.velocity.x -= 1L
+            b.velocity.x += 1L
+          }
+
+          if (a.position.y < b.position.y) {
+            a.velocity.y += 1L
+            b.velocity.y -= 1L
+          } else if (a.position.y > b.position.y) {
+            a.velocity.y -= 1L
+            b.velocity.y += 1L
+          }
+
+          if (a.position.z < b.position.z) {
+            a.velocity.z += 1L
+            b.velocity.z -= 1L
+          } else if (a.position.z > b.position.z) {
+            a.velocity.z -= 1L
+            b.velocity.z += 1L
+          }
+
           i+=1
         }
 
