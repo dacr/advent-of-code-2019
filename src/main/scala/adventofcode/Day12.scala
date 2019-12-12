@@ -86,6 +86,12 @@ object Day12 {
       def totalEnergy = pot*kin
 
       def hash = 31*(id + 31L*(position.x + 31L*(position.y + 31L*(position.z + 31L*(velocity.x + 31L*(velocity.y + 31L*velocity.z))))))
+
+      override def toString: String = {
+        import position._
+        import velocity.{x=>vx, y=>vy, z=>vz}
+        f"$id : $x%+04d/$y%+04d/$z%+04d $vx%+04d/$vy%+04d/$vz%+04d"
+      }
     }
 
     @inline def moonsHash(moons:List[Moon]):Long = moons.foldLeft(0L) { case (code, c) => 31L*code + c.hash }
@@ -115,6 +121,8 @@ object Day12 {
       //while(currentHash != referenceHash && steps < limit)  {
       while(currentHash != referenceHash && steps < limit)  {
         if (steps % 100_000_000L == 0L) println(steps)
+
+        //println(currentMoons.mkString(", "))
 
         i=0
         while(i < indexCombinationsA.length) {
