@@ -1,6 +1,6 @@
 package adventofcode
 
-import Day12.Part1._
+import Day12.Part2._
 
 object Day12Main {
   def main(args: Array[String]): Unit = {
