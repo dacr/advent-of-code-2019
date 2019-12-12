@@ -15,7 +15,6 @@ class Day12Test extends FlatSpec with Matchers {
       )
   }
   "simulation" should "return the right result" in {
-    simulate(parse(fileToString())) should not be 78078410000L //too high
     simulate(parse(fileToString())) should not be 156410 //too high
     simulate(parse(fileToString())) should not be 395 //too low
     simulate(parse(fileToString())) shouldBe 13045

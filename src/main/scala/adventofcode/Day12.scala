@@ -6,10 +6,10 @@ import scala.math._
 object Day12 {
   object Part1 {
 
-    case class Vect(x:Long, y:Long, z:Long) {
+    case class Vect(x:Int, y:Int, z:Int) {
       def add(that:Vect):Vect = Vect(x+that.x, y+that.y, z+that.z)
-      def absolutesSum: Long =abs(x)+abs(y)+abs(z)
-      //val hash:Long = scala.util.hashing.MurmurHash3.stringHash(toString)
+      def absolutesSum: Int =abs(x)+abs(y)+abs(z)
+      override def toString: String = s"$x/$y/$z"
     }
 
     case class Moon(id:Int, position:Vect, velocity: Vect) {
@@ -17,11 +17,11 @@ object Day12 {
       def pot = position.absolutesSum
       def kin = velocity.absolutesSum
       def totalEnergy = pot*kin
-      //val hash:Long = scala.util.hashing.MurmurHash3.stringHash(toString)
+      override def toString: String = s"$id-$position$velocity"
     }
 
     def gravityImpactFor(that: Moon, becauseOfThis: Moon): Vect = {
-      def impact(v1:Long,v2:Long):Long = if (v1 < v2 ) +1 else if (v1 > v2) -1 else 0
+      def impact(v1:Int,v2:Int):Int = if (v1 < v2 ) +1 else if (v1 > v2) -1 else 0
       Vect(
         x=impact(that.position.x, becauseOfThis.position.x),
         y=impact(that.position.y, becauseOfThis.position.y),
@@ -29,7 +29,7 @@ object Day12 {
       )
     }
 
-    def simulate(moons:List[Moon]): Long = {
+    def simulate(moons:List[Moon]): Int = {
       var currentMoons:List[Moon] = moons
       (1 to 1000) map {  step =>
         // update velocity by applying gravity
@@ -51,18 +51,19 @@ object Day12 {
       //val hash = moons.zip(primes).map{ case (moon,prime) => moon.id*moon.hash*prime}.sum
       //val hash:Int = scala.util.hashing.MurmurHash3.stringHash(toString)
       //val hash:Int = scala.util.hashing.MurmurHash3.listHash(moons, 42)
-      val hash:Long = moons.toString().foldLeft(0L) { case (code, c) => 31*code + c }
+      override def toString: String = moons.map(_.toString).mkString(",")
+      val hash:Long = toString().foldLeft(0L) { case (code, c) => 31*code + c }
     }
 
     def howManyStepsToGoBackToAnAlreadySeenState(moons:List[Moon]): Long = {
       var knownStates = Set.empty[Long]
 
       var currentMoons:MoonList = MoonList(moons)
-      var steps = 0L
+      var steps = 0
       println("START")
       while(! knownStates.contains(currentMoons.hash))  {
         knownStates += currentMoons.hash
-        if (steps % 100000L == 0L) println(steps)
+        if (steps % 100000 == 0) println(steps)
         // update velocity by applying gravity
         val velocityChanges =
           currentMoons.moons
@@ -73,7 +74,7 @@ object Day12 {
 
         // update position by applying velocity
         currentMoons = MoonList(velocityChanges.map { case (moon, changes) => moon.move(moon.velocity.add(changes)) }.toList)
-        steps+=1L
+        steps+=1
       }
       steps
     }
@@ -85,11 +86,10 @@ object Day12 {
         .split("\n")
         .map(_.split("""\s*,\s*"""))
         .zip(primes)
-        .collect{case (Array(xs,ys,zs), id)=> Moon(id, Vect(xs.toLong, ys.toLong, zs.toLong), Vect(0,0,0))}
+        .collect{case (Array(xs,ys,zs), id)=> Moon(id, Vect(xs.toInt, ys.toInt, zs.toInt), Vect(0,0,0))}
         .toList
     }
     def fileToString(inputFile: File = "data" / "day12" / "input.txt"): String = inputFile.contentAsString
-
 
   }
 
