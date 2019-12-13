@@ -1,6 +1,8 @@
 package adventofcode
 
 import better.files._
+
+import scala.annotation.tailrec
 import scala.math._
 
 object Day12 {
@@ -56,116 +58,65 @@ object Day12 {
     def fileToString(inputFile: File = "data" / "day12" / "input.txt"): String = inputFile.contentAsString
 
   }
+
+
+
+
   object Part2 {
-    type NumType = Int
-    type HashType = Long
+    type NumType = Long
 
-    class Vect(var x:NumType, var y:NumType, var z:NumType) {
-      def absolutesSum: NumType =abs(x)+abs(y)+abs(z)
-    }
-
-    class Moon(id:NumType, var x:NumType,var y:NumType, var z:NumType, var vx:NumType, var vy:NumType, var vz:NumType) {
-      def move():Unit = {
-        x = x + vx
-        y = y + vy
-        z = z + vz
-      }
-      def pot = abs(x)+abs(y)+abs(z)
-      def kin = abs(vx)+abs(vy)+abs(vz)
-      def totalEnergy:NumType = pot*kin
-
-      def hash:NumType = 31*(id + 31*(x + 31*(y + 31*(z + 31*(vx + 31*(vy + 31*vz))))))
-
-      override def toString: String = {
-        f"$id : $x%+04d/$y%+04d/$z%+04d $vx%+04d/$vy%+04d/$vz%+04d"
-      }
-    }
-
-    @inline def moonsHash(moons:List[Moon]):HashType = moons.foldLeft(0L) { case (code, c) => 31*code + c.hash }
-    @inline def moonsHash(moons:Array[Moon]):HashType = {
-      var code = 0L
-      var i = 0
-      while(i < moons.length) {
-        code = 31L*code + moons(i).hash
-        i+=1
-      }
-     code
-    }
-
-
-    def howManyStepsToGoBackToAnAlreadySeenState(moons:List[Moon], limit:Long=Long.MaxValue): Long = {
-      //var knownStates = Set.empty[Long]
-
-      val referenceHash = moonsHash(moons)
-      val currentMoons:Array[Moon] = moons.toArray
-      var currentHash:Long = -1L
-      var steps = 0L
-      val indexCombinationsA = 0.until(moons.size).combinations(2).map{case IndexedSeq(a,b) => a}.toArray
-      val indexCombinationsB = 0.until(moons.size).combinations(2).map{case IndexedSeq(a,b) => b}.toArray
-
-      println("START")
-      var i=0
-      //while(currentHash != referenceHash && steps < limit)  {
-      while(currentHash != referenceHash)  {
-        //if (steps % 100_000_000L == 0L) println(steps)
-
-        //println(currentMoons.mkString(", "))
-
-        i=0
-        while(i < indexCombinationsA.length) {
-          val a = currentMoons(indexCombinationsA(i))
-          val b = currentMoons(indexCombinationsB(i))
-
-          if (a.x < b.x) {
-            a.vx += 1
-            b.vx -= 1
-          } else if (a.x > b.x) {
-            a.vx -= 1
-            b.vx += 1
-          }
-
-          if (a.y < b.y) {
-            a.vy += 1
-            b.vy -= 1
-          } else if (a.y > b.y) {
-            a.vy -= 1
-            b.vy += 1
-          }
-
-          if (a.z < b.z) {
-            a.vz += 1
-            b.vz -= 1
-          } else if (a.z > b.z) {
-            a.vz -= 1
-            b.vz += 1
-          }
-
-          i+=1
-        }
-
-        i=0
-        while (i <  currentMoons.length) {
-          currentMoons(i).move
-          i+=1
-        }
-
-        currentHash = moonsHash(currentMoons)
-        steps+=1L
-      }
-      steps
-    }
+    def fileToString(inputFile: File = "data" / "day12" / "input.txt"): String = inputFile.contentAsString
 
     def parse(input:String):List[Moon] = {
-      val primes = List(3,5,7,11,13,17)
       input
         .replaceAll("[<>xyz=]", "")
         .split("\n")
         .map(_.split("""\s*,\s*"""))
-        .zip(primes)
-        .collect{case (Array(xs,ys,zs), id)=> new Moon(id, xs.toInt, ys.toInt, zs.toInt, 0,0,0)}
+        .collect{case Array(xs,ys,zs)=> Moon(Vect(xs.toLong, ys.toLong, zs.toLong), Vect(0L,0L,0L))}
         .toList
     }
-    def fileToString(inputFile: File = "data" / "day12" / "input.txt"): String = inputFile.contentAsString
+
+    case class Vect(x:NumType, y:NumType, z:NumType)
+    case class Moon(position:Vect, velocity: Vect)
+
+
+    @tailrec
+    def gcd(a: BigInt, b: BigInt):BigInt=if (b == 0) a.abs else gcd(b, a%b)
+    def lcm(a: BigInt, b: BigInt):BigInt=(a*b).abs/gcd(a,b)
+    def lcms(nums:Iterable[BigInt]):BigInt = nums.reduce((a,b)=>lcm(a,b))
+    def lcms(nums:BigInt*):BigInt = nums.reduce((a,b)=>lcm(a,b))
+
+    def adjustGravity(ap: NumType, bp: NumType):NumType = {
+      if (ap < bp) +1L else if (ap > bp) -1L else 0L
+    }
+
+
+    def computeCycles(referencePositions: Array[NumType], referenceVelocities:Array[NumType]): NumType = {
+      var positions = referencePositions.clone()
+      var velocities = referenceVelocities.clone()
+      var steps = 0
+      var indexCombinations = 0.until(referencePositions.size).combinations(2).toList.map{case IndexedSeq(ia,ib)=> (ia,ib)}
+      while(steps == 0 || !referencePositions.sameElements(positions) || !referenceVelocities.sameElements(velocities)) {
+        indexCombinations.foreach{case (ia,ib)=>
+          val ap = positions(ia)
+          val bp = positions(ib)
+          velocities(ia) +=  adjustGravity(ap,bp)
+          velocities(ib) +=  adjustGravity(bp,ap)
+        }
+        for{i <- 0.until(positions.length)} {
+          positions(i)+=velocities(i)
+        }
+        steps+=1
+      }
+      steps
+    }
+
+    def howManyStepsToGoBackToAnAlreadySeenState(moons:List[Moon]): BigInt = {
+      val xcycles:NumType = computeCycles(moons.map(m => m.position.x).toArray, moons.map(m => m.velocity.x).toArray)
+      val ycycles:NumType = computeCycles(moons.map(m => m.position.y).toArray, moons.map(m => m.velocity.y).toArray)
+      val zcycles:NumType = computeCycles(moons.map(m => m.position.z).toArray, moons.map(m => m.velocity.z).toArray)
+      lcms(xcycles,ycycles,zcycles)
+    }
 
   }
 
