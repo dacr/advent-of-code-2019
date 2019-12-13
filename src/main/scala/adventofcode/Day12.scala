@@ -57,45 +57,32 @@ object Day12 {
 
   }
   object Part2 {
+    type NumType = Int
+    type HashType = Long
 
-    class Vect(var x:Long, var y:Long, var z:Long) {
-      def add(that:Vect):Unit = {
-        x += that.x
-        y += that.y
-        z += that.z
-      }
-      def set(that:Vect):Unit = {
-        x = that.x
-        y = that.y
-        z = that.z
-      }
-      def reset():Unit = {
-        x=0
-        y=0
-        z=0
-      }
-      def absolutesSum: Long =abs(x)+abs(y)+abs(z)
+    class Vect(var x:NumType, var y:NumType, var z:NumType) {
+      def absolutesSum: NumType =abs(x)+abs(y)+abs(z)
     }
 
-    case class Moon(id:Long, position:Vect, velocity: Vect) {
-      def move() = {
-        position.add(velocity)
+    class Moon(id:NumType, var x:NumType,var y:NumType, var z:NumType, var vx:NumType, var vy:NumType, var vz:NumType) {
+      def move():Unit = {
+        x = x + vx
+        y = y + vy
+        z = z + vz
       }
-      def pot = position.absolutesSum
-      def kin = velocity.absolutesSum
-      def totalEnergy = pot*kin
+      def pot = abs(x)+abs(y)+abs(z)
+      def kin = abs(vx)+abs(vy)+abs(vz)
+      def totalEnergy:NumType = pot*kin
 
-      def hash = 31*(id + 31L*(position.x + 31L*(position.y + 31L*(position.z + 31L*(velocity.x + 31L*(velocity.y + 31L*velocity.z))))))
+      def hash:NumType = 31*(id + 31*(x + 31*(y + 31*(z + 31*(vx + 31*(vy + 31*vz))))))
 
       override def toString: String = {
-        import position._
-        import velocity.{x=>vx, y=>vy, z=>vz}
         f"$id : $x%+04d/$y%+04d/$z%+04d $vx%+04d/$vy%+04d/$vz%+04d"
       }
     }
 
-    @inline def moonsHash(moons:List[Moon]):Long = moons.foldLeft(0L) { case (code, c) => 31L*code + c.hash }
-    @inline def moonsHash(moons:Array[Moon]):Long = {
+    @inline def moonsHash(moons:List[Moon]):HashType = moons.foldLeft(0L) { case (code, c) => 31*code + c.hash }
+    @inline def moonsHash(moons:Array[Moon]):HashType = {
       var code = 0L
       var i = 0
       while(i < moons.length) {
@@ -119,8 +106,8 @@ object Day12 {
       println("START")
       var i=0
       //while(currentHash != referenceHash && steps < limit)  {
-      while(currentHash != referenceHash && steps < limit)  {
-        if (steps % 100_000_000L == 0L) println(steps)
+      while(currentHash != referenceHash)  {
+        //if (steps % 100_000_000L == 0L) println(steps)
 
         //println(currentMoons.mkString(", "))
 
@@ -129,28 +116,28 @@ object Day12 {
           val a = currentMoons(indexCombinationsA(i))
           val b = currentMoons(indexCombinationsB(i))
 
-          if (a.position.x < b.position.x) {
-            a.velocity.x += 1L
-            b.velocity.x -= 1L
-          } else if (a.position.x > b.position.x) {
-            a.velocity.x -= 1L
-            b.velocity.x += 1L
+          if (a.x < b.x) {
+            a.vx += 1
+            b.vx -= 1
+          } else if (a.x > b.x) {
+            a.vx -= 1
+            b.vx += 1
           }
 
-          if (a.position.y < b.position.y) {
-            a.velocity.y += 1L
-            b.velocity.y -= 1L
-          } else if (a.position.y > b.position.y) {
-            a.velocity.y -= 1L
-            b.velocity.y += 1L
+          if (a.y < b.y) {
+            a.vy += 1
+            b.vy -= 1
+          } else if (a.y > b.y) {
+            a.vy -= 1
+            b.vy += 1
           }
 
-          if (a.position.z < b.position.z) {
-            a.velocity.z += 1L
-            b.velocity.z -= 1L
-          } else if (a.position.z > b.position.z) {
-            a.velocity.z -= 1L
-            b.velocity.z += 1L
+          if (a.z < b.z) {
+            a.vz += 1
+            b.vz -= 1
+          } else if (a.z > b.z) {
+            a.vz -= 1
+            b.vz += 1
           }
 
           i+=1
@@ -175,7 +162,7 @@ object Day12 {
         .split("\n")
         .map(_.split("""\s*,\s*"""))
         .zip(primes)
-        .collect{case (Array(xs,ys,zs), id)=> Moon(id, new Vect(xs.toInt, ys.toInt, zs.toInt), new Vect(0,0,0))}
+        .collect{case (Array(xs,ys,zs), id)=> new Moon(id, xs.toInt, ys.toInt, zs.toInt, 0,0,0)}
         .toList
     }
     def fileToString(inputFile: File = "data" / "day12" / "input.txt"): String = inputFile.contentAsString
