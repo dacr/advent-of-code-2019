@@ -8,7 +8,8 @@ libraryDependencies ++= Seq(
   "com.github.pathikrit" %% "better-files" % "3.8.0",
   "com.typesafe.akka" %% "akka-actor-typed" % "2.6.1",
   "org.scalatest" %% "scalatest" % "3.0.8" % Test,
-  "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.6.1" % Test
+  "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.6.1" % Test,
+  "org.optaplanner" % "optaplanner-core" % "7.31.0.Final",
 )
 
 testOptions in Test += Tests.Argument("-oD")

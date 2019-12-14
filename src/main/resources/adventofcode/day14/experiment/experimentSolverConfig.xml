@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<solver>
+    <!-- Define the model -->
+    <!--
+    <solutionClass>adventofcode.day14.experiment.ExperimentSolution</solutionClass>
+    <entityClass>adventofcode.day14.experiment.ExperimentRule</entityClass>
+    -->
+    <scanAnnotatedClasses/> <!-- or scan for it -->
+
+    <!-- Define the score function -->
+    <scoreDirectorFactory>
+        <scoreDrl>adventofcode/day14/experiment/experiment.drl</scoreDrl>
+    </scoreDirectorFactory>
+
+    <!-- Configure the optimization algorithms (optional) -->
+    <!--
+    <termination>
+        ...
+    </termination>
+    <constructionHeuristic>
+        ...
+    </constructionHeuristic>
+    <localSearch>
+        ...
+    </localSearch>
+    -->
+</solver>

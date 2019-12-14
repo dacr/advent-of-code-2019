@@ -1,8 +1,11 @@
 package adventofcode.helpers
 
+import better.files.File
+
 import scala.io.Source
 
 trait Helpers {
+
   def fileContentToStringList(filename: String):List[String] = {
     Source.fromFile(filename).getLines.toList.map(_.trim).filter(_.size>0)
   }
