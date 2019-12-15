@@ -8,7 +8,6 @@ class Day15Test extends ScalaTestWithActorTestKit with WordSpecLike {
   "Advent of code" must {
     "Day15" should {
       "Part1 & 2" should {
-        import Day15.Part1._
         import Day15._
         "work with the provided input file" in {
           val listenProbe = createTestProbe[ListenActor.Response]()
