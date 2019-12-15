@@ -17,7 +17,7 @@ class Day15Test extends ScalaTestWithActorTestKit with WordSpecLike {
           val response1 = listenProbe.expectMessageType[ListenActor.Response]
           response1.value shouldBe 298 // Part1
           val response2 = listenProbe.expectMessageType[ListenActor.Response]
-          response2.value shouldBe 144 // Part2
+          response2.value shouldBe 346 // Part2
         }
       }
     }
