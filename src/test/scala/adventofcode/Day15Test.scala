@@ -13,9 +13,11 @@ class Day15Test extends ScalaTestWithActorTestKit with WordSpecLike {
         "work with the provided input file" in {
           val listenProbe = createTestProbe[ListenActor.Response]()
           val code = fileToCode()
-          val DriverBotActor = spawn(SearchBotActor(code, listenProbe.ref))
-          val response = listenProbe.expectMessageType[ListenActor.Response]
-          response.distance shouldBe 298
+          val driverBotActor = spawn(SearchBotActor(code, listenProbe.ref))
+          val response1 = listenProbe.expectMessageType[ListenActor.Response]
+          response1.value shouldBe 298
+          val response2 = listenProbe.expectMessageType[ListenActor.Response]
+          response2.value shouldBe 144
         }
       }
     }

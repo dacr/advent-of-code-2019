@@ -4,6 +4,8 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
 import better.files._
 
+import scala.annotation.tailrec
+
 
 object Day15 {
 
@@ -263,14 +265,37 @@ object Day15 {
         directions:List[Direction]=List(Up,Down,Left,Right)
       )
 
+      def computesMinutes(land: Land): Int = {
+        val directions = List(Left,Right,Up,Down)
+        @tailrec
+        def worker(floodedLand:Land, minutes:Int):Int = {
+          val toFlood = for {
+            x <- (0 until floodedLand.width).toList
+            y <- 0 until floodedLand.height
+            pos = (x,y)
+            if floodedLand.alreadyExplored(pos)
+            if floodedLand.get(pos) == Oxygen
+          } yield {
+            directions
+              .map(move(pos))
+              .filter(aroundPosition => floodedLand.get(aroundPosition)==Explored)
+          }
+          toFlood.flatten match {
+            case Nil => minutes
+            case positions =>
+              val newFloodedLand = positions.foldLeft(floodedLand){ (currentLand,y) => currentLand.set(y,Oxygen)}
+              worker(newFloodedLand, minutes + 1)
+          }
+        }
+        worker(land, 0)
+      }
+
       def walk(
         programActor: ActorRef[ProgramActor.Input],
         listenActor: ActorRef[ListenActor.Response],
         land: Land,
         walkedPath:List[DirectionToCheck]
       ): Behavior[Control] = {
-        println(land.toString())
-        println("---------")
         walkedPath match {
           // --- already explored
           case DirectionToCheck(pos,dist,comingFrom,direction::remainingDirections)::tail if land.alreadyExplored(move(pos)(direction)) =>
@@ -290,11 +315,18 @@ object Day15 {
                 val newWalkedTile = DirectionToCheck(newPos, newDist,direction,directions.filterNot(_ == direction.reverse))
                 walk(programActor,listenActor, land.set(newPos, Explored), newWalkedTile::updatedWalkedTile::tail)
               case response:Output if response.value == 2 => // OXYGEN
+                val directions = List(Left,Right,Up,Down)
+                val newWalkedTile = DirectionToCheck(newPos, newDist,direction,directions.filterNot(_ == direction.reverse))
                 val newLand = land.set(newPos, Oxygen)
-                println(newLand.toString())
                 listenActor ! ListenActor.Response(newDist)
-                Behaviors.stopped
+                walk(programActor,listenActor, newLand, newWalkedTile::updatedWalkedTile::tail)
             }
+          // --- back to start position and everything has been discovered
+          case center::Nil if center.directions.isEmpty =>
+            println("Explored Map:\n"+land)
+            val minutes:Int = computesMinutes(land)
+            listenActor ! ListenActor.Response(minutes)
+            Behaviors.stopped
           // --- going back
           case directionToCheck::tail =>
             programActor ! ProgramActor.Input(directionToCheck.comingFrom.reverse.code)
@@ -321,7 +353,8 @@ object Day15 {
     }
 
     object ListenActor {
-      case class Response(distance: Int)
+      case class Response(value: Int)
+
     }
   }
 
