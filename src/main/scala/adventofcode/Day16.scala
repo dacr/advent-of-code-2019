@@ -68,21 +68,32 @@ object Day16 {
       val digitsCount = digits.length
       println(s"### $digitsCount for $iterations iterations ###")
       var sum = 0
-
+      var timestamp = System.currentTimeMillis()
       @tailrec
       def worker(digits1: Array[Int], digits2: Array[Int], currentIteration: Int): Array[Int] = {
-        println(s"--- $currentIteration ---")
         if (currentIteration == iterations) digits1
         else {
-          var goalPosition = 1
-          while (goalPosition <= digitsCount) {
-            sum = 0
-            var index = 0
-            while (index < digitsCount) {
-              sum += digits1(index) * patternGenerator(goalPosition, index + 1)
-              index += 1
+          var goalPosition = 0
+          while (goalPosition < digitsCount) {
+            if (goalPosition%1000 == 0) {
+              val duration = System.currentTimeMillis()-timestamp
+              timestamp = System.currentTimeMillis()
+              println(s"--- $currentIteration/$iterations - $goalPosition/$digitsCount - ${duration}ms ---")
             }
-            digits2(goalPosition - 1) = lastDigit(sum)
+            sum = 0
+            //var index = 0
+            var index = goalPosition
+            while (index < digitsCount) {
+              val i = (index+1) / (goalPosition+1)
+              val r = (index+1) % (goalPosition+1)
+              val factor = basePatternDefault(i % basePatternDefaultSize)
+              if (factor == 0 && r == 0) index += goalPosition+1
+              else {
+                sum += digits1(index) * factor
+                index += 1
+              }
+            }
+            digits2(goalPosition) = lastDigit(sum)
             goalPosition += 1
           }
           worker(digits2, digits1, currentIteration + 1)
