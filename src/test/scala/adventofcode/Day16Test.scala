@@ -39,13 +39,9 @@ class Day16Test extends WordSpec with Matchers {
       }
 
       "should run quickly on previous examples" in {
-        process("12345678", 4) shouldBe "01029498"
-        process("80871224585914546619083218645595") shouldBe "24176176"
-        process("19617804207202209144916044189917") shouldBe "73745418"
-        process("69317163492948606335995924319873") shouldBe "52432133"
-      }
-      "give the right result with the provided file" in {
-        process(fileToString()) shouldBe "42205986"
+        process("03036732577212944063491565474664") shouldBe "84462026"
+        process("02935109699940807407585447034323") shouldBe "78725270"
+        process("03081770884921959731165446850517") shouldBe "53553731"
       }
 
       "give the right result with the provided file * 10000" ignore {

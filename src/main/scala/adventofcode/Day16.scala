@@ -61,7 +61,9 @@ object Day16 {
     }
 
     def process(input: String, iterations: Int = 100): String = {
-      processDigits(input.map(_.toInt - 48).toArray, iterations).take(8).mkString("")
+      val result = processDigits((input * 10000).map(_.toInt - 48).toArray, iterations)
+      val toSkip = input.take(7).mkString.toInt
+      result.drop(toSkip).take(8).mkString
     }
 
     def processDigits(digits: Array[Int], iterations: Int): Array[Int] = {
@@ -107,8 +109,7 @@ object Day16 {
 
   def main(args: Array[String]): Unit = {
     import Part2._
-    //val result = process(fileToString() * 10000)
-    val result = process(fileToString() * 10000)
+    val result = process(fileToString())
     println(result)
   }
 }
