@@ -67,8 +67,9 @@ object Day16 {
     def processDigits(digits: Array[Int], iterations: Int): Array[Int] = {
       val digitsCount = digits.length
       println(s"### $digitsCount for $iterations iterations ###")
-      var sum = 0
+      //var sum = 0
       var timestamp = System.currentTimeMillis()
+      val started = timestamp
       @tailrec
       def worker(digits1: Array[Int], digits2: Array[Int], currentIteration: Int): Array[Int] = {
         if (currentIteration == iterations) digits1
@@ -78,10 +79,10 @@ object Day16 {
             if (goalPosition%1000 == 0) {
               val duration = System.currentTimeMillis()-timestamp
               timestamp = System.currentTimeMillis()
-              println(s"--- $currentIteration/$iterations - $goalPosition/$digitsCount - ${duration}ms ---")
+              val estim = duration * (iterations*digitsCount+goalPosition) / 1000 / 3600
+              println(s"--- $currentIteration/$iterations - $goalPosition/$digitsCount - ${duration}ms - ${estim} hours ---")
             }
-            sum = 0
-            //var index = 0
+            var sum = 0
             var index = goalPosition
             while (index < digitsCount) {
               val i = (index+1) / (goalPosition+1)
@@ -106,6 +107,7 @@ object Day16 {
 
   def main(args: Array[String]): Unit = {
     import Part2._
+    //val result = process(fileToString() * 10000)
     val result = process(fileToString() * 10000)
     println(result)
   }
