@@ -38,7 +38,7 @@ class Day16Test extends WordSpec with Matchers {
         }
       }
 
-      "should run quickly on previous examples" in {
+      "should run quickly on those specific examples" in {
         process("03036732577212944063491565474664") shouldBe "84462026"
         process("02935109699940807407585447034323") shouldBe "78725270"
         process("03081770884921959731165446850517") shouldBe "53553731"
