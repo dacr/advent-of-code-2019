@@ -72,16 +72,17 @@ object Day16 {
       //var sum = 0
       var timestamp = System.currentTimeMillis()
       val started = timestamp
+      val infoStep = 5000
       @tailrec
       def worker(digits1: Array[Int], digits2: Array[Int], currentIteration: Int): Array[Int] = {
         if (currentIteration == iterations) digits1
         else {
           var goalPosition = 0
           while (goalPosition < digitsCount) {
-            if (goalPosition%1000 == 0) {
+            if (goalPosition%infoStep == 0) {
               val duration = System.currentTimeMillis()-timestamp
               timestamp = System.currentTimeMillis()
-              val estim = duration * (iterations*digitsCount+goalPosition) / 1000 / 3600
+              val estim = (duration.toDouble * (iterations*digitsCount+goalPosition) / infoStep  - (timestamp - started)) / 1000 / 3600
               println(s"--- $currentIteration/$iterations - $goalPosition/$digitsCount - ${duration}ms - ${estim} hours ---")
             }
             var sum = 0
