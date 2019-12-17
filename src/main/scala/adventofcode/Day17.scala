@@ -321,7 +321,9 @@ object Day17 {
   object TurnRight extends Turn {
     override def toString: String = "R"
   }
-  case class MoveInstruction(turn:Turn,moveCount:Int)
+  case class MoveInstruction(turn:Turn,moveCount:Int) {
+    override def toString: String = s"$turn$moveCount"
+  }
 
   def fullPath(land:Land):List[MoveInstruction] = {
     land.botPosition() match {
@@ -366,6 +368,9 @@ object Day17 {
 
 
     def part2(programActor: ActorRef[ProgramActor.ProgramMessage], listenActor: ActorRef[ListenActor.Response], land: Land): Behavior[Control] = {
+      val path = fullPath(land)
+      println(path.mkString(","))
+      // Add huffman inspired algorithm to solve the issue
       ???
     }
 
