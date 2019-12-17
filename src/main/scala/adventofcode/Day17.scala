@@ -193,9 +193,53 @@ object Day17 {
 
   type Position = (Int,Int)
 
+  sealed trait Direction {
+    val reverse: Direction
+  }
+
+  object Up extends Direction {
+    val reverse = Down
+  }
+
+  object Down extends Direction {
+    val reverse = Up
+  }
+
+  object Left extends Direction {
+    val reverse = Right
+  }
+
+  object Right extends Direction {
+    val reverse = Left
+  }
+
+  val directions = List(Up,Down,Left,Right)
+
+
+  def move(position: Position)(direction: Direction): Position = position match {
+    case (x, y) =>
+      direction match {
+        case Up => (x, y - 1)
+        case Left => (x - 1, y)
+        case Down => (x, y + 1)
+        case Right => (x + 1, y)
+      }
+  }
+
+
   case class Land(zones: Vector[Vector[Tile]]) {
     val width = zones.head.size
     val height = zones.size
+
+    def intersections():List[Position] = {
+      val results = for {
+        x <- 1 until width-1
+        y <- 1 until height-1
+        pos = (x,y)
+        if get(pos) == Scaffold && directions.forall{direction => get(move(pos)(direction))  == Scaffold}
+      } yield pos
+      results.toList
+    }
 
     override def toString() = zones.map(_.mkString).mkString("\n")
 
@@ -228,12 +272,19 @@ object Day17 {
 
     object NeedInput extends Control
 
+
+    def computeIntersectionsSum(programActor: ActorRef[ProgramActor.ProgramMessage], listenActor: ActorRef[ListenActor.Response], land: Land): Behavior[Control] = {
+      val value = land.intersections().map{case (x,y) => x*y}.sum
+      listenActor ! ListenActor.Response(value)
+      Behaviors.stopped
+    }
+
     def buildLand(programActor: ActorRef[ProgramActor.ProgramMessage], listenActor: ActorRef[ListenActor.Response], landTiles: Vector[Vector[Tile]]): Behavior[Control] = {
       Behaviors.receiveMessage {
         case response:Output if response.value == 10 && landTiles.last.isEmpty =>
-          val finalBuiltLand = landTiles.init
-          println(finalBuiltLand.toString())
-          Behaviors.same // TODO
+          val land = Land(landTiles.init)
+          println(land)
+          computeIntersectionsSum(programActor, listenActor, land)
         case response:Output if response.value == 10 =>
           val newLandTiles = landTiles.appended(Vector.empty[Tile])
           buildLand(programActor, listenActor, newLandTiles)
@@ -248,9 +299,9 @@ object Day17 {
           }
           val newLandTiles = landTiles.init :+ (landTiles.last:+tile)
           buildLand(programActor, listenActor, newLandTiles)
-        case x =>
-          println(s"NOT UNDERSTOOD OUTPUT $x")
-          Behaviors.same
+        case response:Result =>
+          println(s"FINISHED")
+          Behaviors.stopped
       }
     }
 
