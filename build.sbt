@@ -10,6 +10,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.8" % Test,
   "com.typesafe.akka" %% "akka-actor-testkit-typed" % "2.6.1" % Test,
   "org.optaplanner" % "optaplanner-core" % "7.31.0.Final",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
 )
 
 testOptions in Test += Tests.Argument("-oD")
