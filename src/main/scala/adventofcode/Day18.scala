@@ -65,11 +65,14 @@ object Day18 {
   object Start extends Tile {
     override def toString: String = "@"
   }
-  case class Door(name:Char) extends Tile {
+
+  trait Item extends Tile
+
+  case class Door(name:Char) extends Item {
     override def toString: String = name.toString
   }
 
-  case class Key(name:Char) extends Tile {
+  case class Key(name:Char) extends Item {
     override def toString: String = name.toString
   }
 
@@ -101,7 +104,7 @@ object Day18 {
         if criteria(tile)
       } yield tile->pos
     }
-    def botPosition():Option[(Tile,Position)] = {
+    def startPosition():Option[(Tile,Position)] = {
       search(tile => tile == Start).headOption
     }
   }
@@ -128,10 +131,16 @@ object Day18 {
     }
   }
 
+  case class Choice(item:Item, distance:Int)
 
+  def choices(from:Position, lab:Land):List[Choice] = {
+    ???
+  }
 
 
   def solve(labyrinthString:String):Solution = {
+    val lab = Land(labyrinthString)
+    val pos = lab.startPosition()
     ???
   }
 }
