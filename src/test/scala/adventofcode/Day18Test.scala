@@ -49,6 +49,7 @@ class Day18Test extends WordSpec with Matchers {
         s"example#$testNumber gives the shortest solutions" in {
           val solution = solve(lab)
           solution.shortestPathLength shouldBe shortestPath
+          solution.shortestPaths should contain theSameElementsAs(List(path))
         }
       }
 
