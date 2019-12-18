@@ -9,6 +9,24 @@ object Day18 {
 
   case class Solution(shortestPathLength:Int, shortestPaths:List[List[Char]])
 
+  trait Tile
+  object Wall extends Tile {
+    override def toString: String = "#"
+  }
+  object Free extends Tile {
+    override def toString: String = "."
+  }
+  object Start extends Tile {
+    override def toString: String = "@"
+  }
+  case class Door(name:Char) extends Tile {
+    override def toString: String = name.toString
+  }
+  case class Key(name:Char) extends Tile {
+    override def toString: String = name.toString
+  }
+
+
   def solve(labyrinthString:String):Solution = {
     ???
   }
