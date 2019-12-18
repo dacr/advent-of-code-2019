@@ -44,6 +44,13 @@ class Day18Test extends WordSpec with Matchers {
           |########################""".stripMargin
           ->(81, List(a, c, f, i, d, g, b, e, h))
       )
+      "land parser" should {
+        for {((lab, (_, _)), testNumber) <- examples.zipWithIndex}
+          s"parse example#$testNumber" in {
+            Land(lab).toString() shouldBe lab
+          }
+      }
+
       "base examples" should {
         for {((lab, (shortestPath, path)), testNumber) <- examples.zipWithIndex}
         s"example#$testNumber gives the shortest solutions" in {
