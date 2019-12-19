@@ -4,10 +4,12 @@ import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
 import better.files._
 
+import scala.annotation.tailrec
+
 object Day18 {
   def fileToString(inputFile: File = "data" / "day18" / "input.txt"): String = inputFile.contentAsString
 
-  case class Solution(shortestPathLength:Int, shortestPaths:List[List[Char]])
+  case class Solution(shortestPathLength:Int, collectedKeys:List[Item])
 
   type Position = (Int,Int)
 
@@ -66,15 +68,12 @@ object Day18 {
     override def toString: String = "@"
   }
 
-  trait Item extends Tile
-
-  case class Door(name:Char) extends Item {
+  case class Item(name:Char) extends Tile {
+    val isKey = name.isLower
+    val isDoor = name.isUpper
     override def toString: String = name.toString
   }
 
-  case class Key(name:Char) extends Item {
-    override def toString: String = name.toString
-  }
 
   case class Land(zones: Vector[Vector[Tile]]) {
     val width = zones.head.size
@@ -104,9 +103,16 @@ object Day18 {
         if criteria(tile)
       } yield tile->pos
     }
-    def startPosition():Option[(Tile,Position)] = {
-      search(tile => tile == Start).headOption
+    def startPosition():Option[Position] = {
+      search(tile => tile == Start).headOption.collect {
+        case (_,position) => position
+      }
     }
+    def possibleMoves(from:Position): List[Position] = {
+      directions.map(direction => move(from)(direction)).filter(position => get(position) != Wall)
+    }
+
+    def clean(pos: Position):Land = set(pos,Free)
   }
 
   object Land {
@@ -114,8 +120,7 @@ object Day18 {
       case '.' => Free
       case '#' => Wall
       case '@' => Start
-      case x if x.isLower => Key(x)
-      case x if x.isUpper => Door(x)
+      case x => Item(x)
     }
 
     def apply(width: Int, height: Int): Land = {
@@ -131,16 +136,76 @@ object Day18 {
     }
   }
 
-  case class Choice(item:Item, distance:Int)
+  case class ItemPos(item:Item, position: Position)
 
-  def choices(from:Position, lab:Land):List[Choice] = {
-    ???
+  case class Choice(itemPos:ItemPos, distance:Int) {
+    def isKey = itemPos.item.isKey
+    def isDoor = itemPos.item.isDoor
+  }
+
+  def searchChoices(from:Position, lab:Land):List[Choice] = {
+    @tailrec
+    def bfsWorker(notVisited:Set[Position],visited:Set[Position], depth:Int=1, choices:List[Choice]=List.empty):List[Choice] = {
+      if (notVisited.isEmpty) choices
+      else {
+        val newPositions =
+          notVisited
+            .flatMap(lab.possibleMoves)
+            .filterNot(visited)
+        val (newChoicePosition,newNotVisited) = newPositions.partition(position => lab.get(position).isInstanceOf[Item]) // TODO BAD
+        val newChoices = newChoicePosition.collect(pos => Choice(ItemPos(lab.get(pos).asInstanceOf[Item],pos), distance = depth)) // TODO BAD
+        bfsWorker(newNotVisited, visited++notVisited, depth+1, choices ++ newChoices)
+      }
+    }
+    bfsWorker(Set(from),Set.empty)
   }
 
 
-  def solve(labyrinthString:String):Solution = {
+  def canBeOpenedBy(doorChoice: Choice, key: Item): Boolean = {
+    doorChoice.itemPos.item.name == key.name.toUpper
+  }
+
+  def solve(labyrinthString:String):List[Solution] = {
     val lab = Land(labyrinthString)
-    val pos = lab.startPosition()
-    ???
+    val initialPos = lab.startPosition().get // TODO BAD
+    val cleanedLab = lab.clean(initialPos)
+
+    def explore(pos:Position, lab:Land, distance:Int, availableKeys:List[Item], collectedKeys:List[Item]):List[Solution] = {
+      val choices = searchChoices(pos, lab)
+      val (doorChoices, keyChoices) = choices.partition(choice => choice.isDoor)
+      if (choices.isEmpty) List(Solution(distance, collectedKeys.reverse))
+      else {
+        // Either collect new keys or open doors
+        val openableDoors:List[Choice]  =
+          doorChoices.filter(doorChoice => availableKeys.exists(key => canBeOpenedBy(doorChoice, key)))
+        val collectableKeys: List[Choice] = keyChoices
+
+        val results1:List[Solution] = openableDoors.flatMap{openableDoor =>
+          val newPosition = openableDoor.itemPos.position
+          val newLab = lab.clean(openableDoor.itemPos.position)
+          val newDistance = distance + openableDoor.distance
+          val newUsedKeys = Item(openableDoor.itemPos.item.name.toLower)::collectedKeys
+          val newCollectedKeys = availableKeys.filterNot(_.name == openableDoor.itemPos.item.name.toLower)
+          explore(newPosition, newLab, newDistance, newCollectedKeys, newUsedKeys)
+        }
+        val results2:List[Solution] = collectableKeys.flatMap{collectableKey =>
+          val newPosition = collectableKey.itemPos.position
+          val newLab = lab.clean(collectableKey.itemPos.position)
+          val newDistance = distance + collectableKey.distance
+          val newUsedKeys = collectedKeys
+          val newCollectedKeys = collectableKey.itemPos.item::availableKeys
+          explore(newPosition, newLab, newDistance, newCollectedKeys, newUsedKeys)
+        }
+
+        results1 ++ results2
+      }
+    }
+
+    explore(initialPos, cleanedLab,0, Nil, Nil)
+  }
+
+  def main(args: Array[String]): Unit = {
+    val solution = solve(fileToString()).minBy(_.shortestPathLength)
+    println(solution)
   }
 }

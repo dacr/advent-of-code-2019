@@ -278,13 +278,13 @@ object Day19 {
               countLeftThenRight(
                 programActor,listenActor,position,areaLimit, xc, yc,
                 xc, leftX,
-                rightX, currentAffected+,false
+                rightX, currentAffected+0,false
               )
             }
         }
       } else { // processingRight
         val middleX = currentX+(rightX-currentX)/2
-
+        ???
       }
 
     }

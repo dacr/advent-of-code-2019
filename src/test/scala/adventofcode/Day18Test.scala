@@ -8,6 +8,7 @@ class Day18Test extends WordSpec with Matchers {
     import Day18._
 
     "Part1" should {
+
       val IndexedSeq(a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s) = 'a' to 's'
       val examples = List(
         """#########
@@ -35,15 +36,16 @@ class Day18Test extends WordSpec with Matchers {
           |########.########
           |#l.F..d...h..C.m#
           |#################""".stripMargin
-        ->(136, List(a, f, b, j, g, n, h, d, l, o, e, p, c, i, k, m)),
+          ->(136, List(a, f, b, j, g, n, h, d, l, o, e, p, c, i, k, m)),
         """########################
           |#@..............ac.GI.b#
           |###d#e#f################
           |###A#B#C################
           |###g#h#i################
           |########################""".stripMargin
-          ->(81, List(a, c, f, i, d, g, b, e, h))
+          ->(81, List(a, c, f, i, d, g, b, e, h)),
       )
+
       "land parser" should {
         for {((lab, (_, _)), testNumber) <- examples.zipWithIndex}
           s"parse example#$testNumber" in {
@@ -51,17 +53,58 @@ class Day18Test extends WordSpec with Matchers {
           }
       }
 
+      "choices function" should {
+        "work on sample1" in {
+          val sample =
+            """#########
+              |#b.A.@.a#
+              |#########""".stripMargin
+          val lab = Land(sample)
+          searchChoices(lab.startPosition().get, lab) should contain allOf(
+            Choice(ItemPos(Item('A'),(3,1)), 2),
+            Choice(ItemPos(Item('a'),(7,1)), 2),
+          )
+        }
+        "work on sample2" in {
+          val sample =
+            """############
+              |#b.A...@..a#
+              |############""".stripMargin
+          val lab = Land(sample)
+          searchChoices(lab.startPosition().get, lab) should contain allOf(
+            Choice(ItemPos(Item('A'),(3,1)), 4),
+            Choice(ItemPos(Item('a'),(10,1)), 3),
+          )
+        }
+      }
+
+      "SimpleTest" in {
+        val sample =
+          """############
+            |#b.A...@..a#
+            |############""".stripMargin
+        val solution = solve(sample).minBy(_.shortestPathLength)
+        solution.shortestPathLength shouldBe 12
+        solution.collectedKeys.map(_.name) shouldBe List('a', 'b')
+      }
+
+
       "base examples" should {
         for {((lab, (shortestPath, path)), testNumber) <- examples.zipWithIndex}
         s"example#$testNumber gives the shortest solutions" in {
-          val solution = solve(lab)
-          solution.shortestPathLength shouldBe shortestPath
-          solution.shortestPaths should contain theSameElementsAs(List(path))
+          solve(lab).groupBy(_.shortestPathLength).toList.minBy{case(len,_)=> len} match {
+            case (len,solutions)=>
+              println("-------------------------")
+              println(s"Test#$testNumber $len")
+              solutions.foreach{solution => println(solution.collectedKeys+" "+solution.collectedKeys.map(_.name).mkString)}
+              len shouldBe shortestPath
+              solutions.map(_.collectedKeys.map(_.name)) should contain oneElementOf(List(path))
+          }
         }
       }
 
       "give the right result with the provided file" in {
-        val solution = solve(fileToString())
+        val solution = solve(fileToString()).minBy(_.shortestPathLength)
         solution.shortestPathLength shouldBe 42
       }
     }
