@@ -248,33 +248,46 @@ object Day19 {
     object NeedInput extends Control
 
 
+    def searchClosestSquare(land: Array[Array[Byte]],w:Int,h:Int): Int = {
+      val positions = for{
+        y <- 0.until(h-100)
+        x <- 0.until(w-100)
+        if land(y)(x) > 0
+        if land(y)(x+100) > 0
+        if land(y+100)(x) > 0
+        if land(y+100)(x+100) > 0
+      } yield (x,y)
+
+       positions.map  {case (x,y) => x*10000+y}.min
+    }
+
     // Using dichotomic search
     def searchCount(
       programActor: ActorRef[ProgramActor.ProgramMessage],
       listenActor: ActorRef[ListenActor.Response],
+      land:Array[Array[Byte]],
       x: Int, y: Int,
       w: Int, h: Int,
       count:Int = 0,
       prevLineCount:Int=0,
+      xstart:Int=0
     ): Behavior[Control] = {
-      //println((x,y,count))
       programActor ! ProgramActor.Input(x)
       programActor ! ProgramActor.Input(y)
       Behaviors.receiveMessage {
-//        case r:Result => // Finished
-//          println(s"FINISHED WITH SOLUTION=$count")
-//          listenActor ! ListenActor.Response(count+count.toInt)
-//          Behaviors.stopped
         case Output(value) if x==w-1 && y==h-1 =>
           println(s"SOLUTION=$value")
+          val newLand = land.updated(y, land(y).updated(x,value.toByte))
           listenActor ! ListenActor.Response(count+value.toInt)
+          listenActor ! ListenActor.Response(searchClosestSquare(newLand,w,h))
           Behaviors.stopped
         case Output(value) if x==w-1 || (value == 0 & count > prevLineCount)=>
-          if (value.toInt == 0) println(".") else println("*")
-          searchCount(programActor, listenActor,0, y+1, w, h, count+value.toInt, count+value.toInt)
-        case Output(value)  =>
-          if (value.toInt == 0) print(".") else print("*")
-          searchCount(programActor, listenActor, x+1, y, w, h, count+value.toInt, prevLineCount)
+          val newLand = land.updated(y, land(y).updated(x,value.toByte))
+          searchCount(programActor, listenActor, newLand, xstart, y+1, w, h, count+value.toInt, count+value.toInt, 0)
+        case Output(value) =>
+          val newLand = land.updated(y, land(y).updated(x,value.toByte))
+          val newXstart = if (xstart == 0 && value>0) x else xstart
+          searchCount(programActor, listenActor, newLand, x+1, y, w, h, count+value.toInt, prevLineCount, newXstart)
       }
     }
 
@@ -289,7 +302,8 @@ object Day19 {
         case (w, h) =>
           position match {
             case (xs, ys) =>
-              searchCount(programActor, listenActor, xs, ys, w, h)
+              val land = Array.fill(h)(Array.fill(w)(0.toByte))
+              searchCount(programActor, listenActor, land, xs, ys, w, h)
           }
       }
     }
