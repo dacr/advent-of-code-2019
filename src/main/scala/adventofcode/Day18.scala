@@ -9,7 +9,7 @@ import scala.annotation.tailrec
 object Day18 {
   def fileToString(inputFile: File = "data" / "day18" / "input.txt"): String = inputFile.contentAsString
 
-  case class Solution(shortestPathLength:Int, collectedKeys:List[Item]) {
+  case class Solution(shortestPathLength:Int, collectedKeys:Vector[Item]) {
     override def toString: String = shortestPathLength+" "+collectedKeys.map(_.name).mkString
   }
 
@@ -175,34 +175,57 @@ object Day18 {
     var currentBestDistance = Int.MaxValue // TODO BAD !
     var currentBestSolutions = List.empty[Solution]
 
-    def explore(pos:Position, lab:Land, distance:Int, availableKeys:Set[Char], collectedKeys:List[Item]):Unit = {
-      //if (distance > currentBestDistance) Nil else { // To get all
-      if (distance >= currentBestDistance) Nil else { // That's ok if we just want to find the shortest length
+    var currentBestMidDistance = Int.MaxValue
+    val currentSolutionLength = lab.toString.count(ch => ch.isLetter && ch.isLower)
+
+    var squeezed = 0
+
+    @inline def stopHeuristicCond1(distance:Int, collectKeys:Vector[Item]):Boolean = {
+      if (distance > currentBestDistance) true else {
+        if (collectKeys.size == currentSolutionLength/3) {
+          if (distance < currentBestMidDistance) {
+            currentBestMidDistance = distance
+          }
+          distance > 2.5*currentBestMidDistance/2
+        } else false
+      }
+    }
+    @inline def stopHeuristicCond2(distance:Int, collectKeys:Vector[Item]):Boolean = {
+      //distance >= currentBestDistance // to get first best solution with shortest path
+      distance > currentBestDistance // to all best solution with the same shortest path
+    }
+
+    def explore(pos:Position, lab:Land, distance:Int, availableKeys:Set[Char], collectedKeys:Vector[Item]):Unit = {
+      if ( stopHeuristicCond2(distance,collectedKeys) ) {
+        squeezed+=1
+        Nil
+      } else {
         val choices = searchChoices(pos, lab)
         if (choices.isEmpty) {
-          val solution = Solution(distance, collectedKeys.reverse)
-          println(s"currentBest : $solution ")
-          if (currentBestDistance < distance) currentBestSolutions = Nil
+          val solution = Solution(distance, collectedKeys)
+          if (distance < currentBestDistance) currentBestSolutions = Nil
           currentBestDistance = distance
           currentBestSolutions ::= solution
+          println(s"currentBest : $solution #${currentBestSolutions.size} $currentBestMidDistance ($squeezed)")
         } else {
           // Either collect new keys or open doors
+          //scala.util.Random.shuffle(choices).foreach {
           choices.foreach {
             case collectableKey if collectableKey.isKey => // isKey
               val newPosition = collectableKey.itemPos.position
               val newLab = lab.clean(collectableKey.itemPos.position)
               val newDistance = distance + collectableKey.distance
-              val newCollectedKeys = collectableKey.itemPos.item :: collectedKeys
+              val newCollectedKeys = collectedKeys.appended(collectableKey.itemPos.item)
               val newAvailableKeys = availableKeys + collectableKey.itemPos.item.name
               explore(pos = newPosition, lab = newLab, distance = newDistance, availableKeys = newAvailableKeys, collectedKeys = newCollectedKeys)
 
-            case openableDoor if openableDoor.isDoor && availableKeys.contains(openableDoor.itemPos.item.name.toLower) =>
+            case openableDoor if availableKeys.contains(openableDoor.itemPos.item.name.toLower) =>
               val newPosition = openableDoor.itemPos.position
               val newLab = lab.clean(openableDoor.itemPos.position)
               val newDistance = distance + openableDoor.distance
               val newCollectedKeys = collectedKeys
               val newAvailableKeys = availableKeys - openableDoor.itemPos.item.name.toLower
-              explore(newPosition, newLab, newDistance, newAvailableKeys, newCollectedKeys)
+              explore(pos = newPosition, lab = newLab, distance = newDistance, availableKeys = newAvailableKeys, collectedKeys = newCollectedKeys)
 
             case _ =>
           }
@@ -211,12 +234,17 @@ object Day18 {
       }
     }
 
-    explore(initialPos, cleanedLab,0, Set.empty, Nil)
+    explore(initialPos, cleanedLab,0, Set.empty, Vector.empty)
     currentBestSolutions
   }
 
   def main(args: Array[String]): Unit = {
-    val solution = solve(fileToString()).minBy(_.shortestPathLength)
+    val solution =
+      solve(fileToString())
+        .groupBy(_.shortestPathLength)
+        .minByOption{case(len,sols) => len}
+        .map{case (len,sols) => len->sols.size}
+
     println(solution)
   }
 }
