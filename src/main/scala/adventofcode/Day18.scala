@@ -173,27 +173,21 @@ object Day18 {
     val cleanedLab = lab.clean(initialPos)
 
     var currentBestDistance = Int.MaxValue // TODO BAD !
+    var currentBestSolutions = List.empty[Solution]
 
-    def explore(pos:Position, lab:Land, distance:Int, availableKeys:Set[Char], collectedKeys:List[Item]):List[Solution] = {
+    def explore(pos:Position, lab:Land, distance:Int, availableKeys:Set[Char], collectedKeys:List[Item]):Unit = {
       //if (distance > currentBestDistance) Nil else { // To get all
       if (distance >= currentBestDistance) Nil else { // That's ok if we just want to find the shortest length
         val choices = searchChoices(pos, lab)
         if (choices.isEmpty) {
           val solution = Solution(distance, collectedKeys.reverse)
           println(s"currentBest : $solution ")
+          if (currentBestDistance < distance) currentBestSolutions = Nil
           currentBestDistance = distance
-          List(solution)
+          currentBestSolutions ::= solution
         } else {
           // Either collect new keys or open doors
-          choices.flatMap{
-            case openableDoor if openableDoor.isDoor && availableKeys.contains(openableDoor.itemPos.item.name.toLower) =>
-              val newPosition = openableDoor.itemPos.position
-              val newLab = lab.clean(openableDoor.itemPos.position)
-              val newDistance = distance + openableDoor.distance
-              val newCollectedKeys = collectedKeys
-              val newAvailableKeys = availableKeys - openableDoor.itemPos.item.name.toLower
-              explore(newPosition, newLab, newDistance, newAvailableKeys, newCollectedKeys)
-
+          choices.foreach {
             case collectableKey if collectableKey.isKey => // isKey
               val newPosition = collectableKey.itemPos.position
               val newLab = lab.clean(collectableKey.itemPos.position)
@@ -202,7 +196,15 @@ object Day18 {
               val newAvailableKeys = availableKeys + collectableKey.itemPos.item.name
               explore(pos = newPosition, lab = newLab, distance = newDistance, availableKeys = newAvailableKeys, collectedKeys = newCollectedKeys)
 
-            case _ => Nil
+            case openableDoor if openableDoor.isDoor && availableKeys.contains(openableDoor.itemPos.item.name.toLower) =>
+              val newPosition = openableDoor.itemPos.position
+              val newLab = lab.clean(openableDoor.itemPos.position)
+              val newDistance = distance + openableDoor.distance
+              val newCollectedKeys = collectedKeys
+              val newAvailableKeys = availableKeys - openableDoor.itemPos.item.name.toLower
+              explore(newPosition, newLab, newDistance, newAvailableKeys, newCollectedKeys)
+
+            case _ =>
           }
 
         }
@@ -210,6 +212,7 @@ object Day18 {
     }
 
     explore(initialPos, cleanedLab,0, Set.empty, Nil)
+    currentBestSolutions
   }
 
   def main(args: Array[String]): Unit = {
