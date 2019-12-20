@@ -9,7 +9,9 @@ import scala.annotation.tailrec
 object Day18 {
   def fileToString(inputFile: File = "data" / "day18" / "input.txt"): String = inputFile.contentAsString
 
-  case class Solution(shortestPathLength:Int, collectedKeys:List[Item])
+  case class Solution(shortestPathLength:Int, collectedKeys:List[Item]) {
+    override def toString: String = shortestPathLength+" "+collectedKeys.map(_.name).mkString
+  }
 
   type Position = (Int,Int)
 
@@ -170,38 +172,44 @@ object Day18 {
     val initialPos = lab.startPosition().get // TODO BAD
     val cleanedLab = lab.clean(initialPos)
 
-    def explore(pos:Position, lab:Land, distance:Int, availableKeys:List[Item], collectedKeys:List[Item]):List[Solution] = {
-      val choices = searchChoices(pos, lab)
-      val (doorChoices, keyChoices) = choices.partition(choice => choice.isDoor)
-      if (choices.isEmpty) List(Solution(distance, collectedKeys.reverse))
-      else {
-        // Either collect new keys or open doors
-        val openableDoors:List[Choice]  =
-          doorChoices.filter(doorChoice => availableKeys.exists(key => canBeOpenedBy(doorChoice, key)))
-        val collectableKeys: List[Choice] = keyChoices
+    var currentBestDistance = Int.MaxValue // TODO BAD !
 
-        val results1:List[Solution] = openableDoors.flatMap{openableDoor =>
-          val newPosition = openableDoor.itemPos.position
-          val newLab = lab.clean(openableDoor.itemPos.position)
-          val newDistance = distance + openableDoor.distance
-          val newUsedKeys = Item(openableDoor.itemPos.item.name.toLower)::collectedKeys
-          val newCollectedKeys = availableKeys.filterNot(_.name == openableDoor.itemPos.item.name.toLower)
-          explore(newPosition, newLab, newDistance, newCollectedKeys, newUsedKeys)
-        }
-        val results2:List[Solution] = collectableKeys.flatMap{collectableKey =>
-          val newPosition = collectableKey.itemPos.position
-          val newLab = lab.clean(collectableKey.itemPos.position)
-          val newDistance = distance + collectableKey.distance
-          val newUsedKeys = collectedKeys
-          val newCollectedKeys = collectableKey.itemPos.item::availableKeys
-          explore(newPosition, newLab, newDistance, newCollectedKeys, newUsedKeys)
-        }
+    def explore(pos:Position, lab:Land, distance:Int, availableKeys:Set[Char], collectedKeys:List[Item]):List[Solution] = {
+      //if (distance > currentBestDistance) Nil else { // To get all
+      if (distance >= currentBestDistance) Nil else { // That's ok if we just want to find the shortest length
+        val choices = searchChoices(pos, lab)
+        if (choices.isEmpty) {
+          val solution = Solution(distance, collectedKeys.reverse)
+          println(s"currentBest : $solution ")
+          currentBestDistance = distance
+          List(solution)
+        } else {
+          // Either collect new keys or open doors
+          choices.flatMap{
+            case openableDoor if openableDoor.isDoor && availableKeys.contains(openableDoor.itemPos.item.name.toLower) =>
+              val newPosition = openableDoor.itemPos.position
+              val newLab = lab.clean(openableDoor.itemPos.position)
+              val newDistance = distance + openableDoor.distance
+              val newCollectedKeys = collectedKeys
+              val newAvailableKeys = availableKeys - openableDoor.itemPos.item.name.toLower
+              explore(newPosition, newLab, newDistance, newAvailableKeys, newCollectedKeys)
 
-        results1 ++ results2
+            case collectableKey if collectableKey.isKey => // isKey
+              val newPosition = collectableKey.itemPos.position
+              val newLab = lab.clean(collectableKey.itemPos.position)
+              val newDistance = distance + collectableKey.distance
+              val newCollectedKeys = collectableKey.itemPos.item :: collectedKeys
+              val newAvailableKeys = availableKeys + collectableKey.itemPos.item.name
+              explore(pos = newPosition, lab = newLab, distance = newDistance, availableKeys = newAvailableKeys, collectedKeys = newCollectedKeys)
+
+            case _ => Nil
+          }
+
+        }
       }
     }
 
-    explore(initialPos, cleanedLab,0, Nil, Nil)
+    explore(initialPos, cleanedLab,0, Set.empty, Nil)
   }
 
   def main(args: Array[String]): Unit = {

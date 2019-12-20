@@ -22,6 +22,13 @@ class Day18Test extends WordSpec with Matchers {
           |########################""".stripMargin
           -> (86, List(a, b, c, d, e, f)),
         """########################
+          |#@..............ac.GI.b#
+          |###d#e#f################
+          |###A#B#C################
+          |###g#h#i################
+          |########################""".stripMargin
+          ->(81, List(a, c, f, i, d, g, b, e, h)),
+        """########################
           |#...............b.C.D.f#
           |#.######################
           |#.....@.a.B.c.d.A.e.F.g#
@@ -37,17 +44,10 @@ class Day18Test extends WordSpec with Matchers {
           |#l.F..d...h..C.m#
           |#################""".stripMargin
           ->(136, List(a, f, b, j, g, n, h, d, l, o, e, p, c, i, k, m)),
-        """########################
-          |#@..............ac.GI.b#
-          |###d#e#f################
-          |###A#B#C################
-          |###g#h#i################
-          |########################""".stripMargin
-          ->(81, List(a, c, f, i, d, g, b, e, h)),
       )
 
       "land parser" should {
-        for {((lab, (_, _)), testNumber) <- examples.zipWithIndex}
+        for {((lab, (_, _)), testNumber) <- examples.zipWithIndex }
           s"parse example#$testNumber" in {
             Land(lab).toString() shouldBe lab
           }
@@ -96,7 +96,7 @@ class Day18Test extends WordSpec with Matchers {
             case (len,solutions)=>
               println("-------------------------")
               println(s"Test#$testNumber $len")
-              solutions.foreach{solution => println(solution.collectedKeys+" "+solution.collectedKeys.map(_.name).mkString)}
+              solutions.foreach{println}
               len shouldBe shortestPath
               solutions.map(_.collectedKeys.map(_.name)) should contain oneElementOf(List(path))
           }
