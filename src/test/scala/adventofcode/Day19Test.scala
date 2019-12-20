@@ -18,7 +18,7 @@ class Day19Test extends ScalaTestWithActorTestKit with WordSpecLike  {
         val driverBotActor = spawn(BeamControlActor(code, listenProbe.ref, areaLimit = (50, 50)))
         listenProbe.within(10.seconds) {
           val response1 = listenProbe.expectMessageType[ListenActor.Response]
-          response1.value shouldBe 8520 // Part1
+          response1.value shouldBe 121 // Part1
         }
       }
     }

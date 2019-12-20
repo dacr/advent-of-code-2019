@@ -49,7 +49,7 @@ object Day19 {
 
   def stringToCode(program: String): Code = new Code(program.split(",").toVector.map(x => BigInt(x)))
 
-  def fileToCode(inputFile: File = "data" / "day17" / "input.txt"): Code = {
+  def fileToCode(inputFile: File = "data" / "day19" / "input.txt"): Code = {
     stringToCode(inputFile.contentAsString)
   }
 
@@ -62,7 +62,9 @@ object Day19 {
 
     case class Input(value: BigInt) extends ProgramMessage
 
+    var initialCode:Code=_
     def apply(code: Code): Behavior[ProgramMessage] = Behaviors.setup { context => {
+      initialCode = code
       Behaviors.receiveMessage {
         case setup: Setup =>
           process(
@@ -163,9 +165,11 @@ object Day19 {
           val newRelativeBase = relativeBase + firstParam.toInt
           process(context, code, outputToOpt, lastResponseToOpt, pointer + 2, inputs, outputs, newRelativeBase)
         case 99 =>
-          lastResponseToOpt.foreach { lastResponseTo => lastResponseTo ! BeamControlActor.Result(outputs, code, context.self) }
-          println("FINISHED - 99")
-          Behaviors.stopped
+          //lastResponseToOpt.foreach { lastResponseTo => lastResponseTo ! BeamControlActor.Result(outputs, code, context.self) }
+          //println("FINISHED - 99")
+          //Behaviors.stopped
+          // REBOOT :
+          process(context, initialCode, outputToOpt, lastResponseToOpt, 0, Vector.empty, Vector.empty, 0)
       }
     }
   }
@@ -250,18 +254,27 @@ object Day19 {
       listenActor: ActorRef[ListenActor.Response],
       x: Int, y: Int,
       w: Int, h: Int,
-      count:Int = 0
+      count:Int = 0,
+      prevLineCount:Int=0,
     ): Behavior[Control] = {
-      println((x,y,count))
+      //println((x,y,count))
       programActor ! ProgramActor.Input(x)
       programActor ! ProgramActor.Input(y)
       Behaviors.receiveMessage {
+//        case r:Result => // Finished
+//          println(s"FINISHED WITH SOLUTION=$count")
+//          listenActor ! ListenActor.Response(count+count.toInt)
+//          Behaviors.stopped
         case Output(value) if x==w-1 && y==h-1 =>
           println(s"SOLUTION=$value")
           listenActor ! ListenActor.Response(count+value.toInt)
           Behaviors.stopped
-        case Output(value) if x==w-1 => searchCount(programActor, listenActor,0, y+1, w, h, count+value.toInt)
-        case Output(value)  => searchCount(programActor, listenActor,x+1, y, w, h, count+value.toInt)
+        case Output(value) if x==w-1 || (value == 0 & count > prevLineCount)=>
+          if (value.toInt == 0) println(".") else println("*")
+          searchCount(programActor, listenActor,0, y+1, w, h, count+value.toInt, count+value.toInt)
+        case Output(value)  =>
+          if (value.toInt == 0) print(".") else print("*")
+          searchCount(programActor, listenActor, x+1, y, w, h, count+value.toInt, prevLineCount)
       }
     }
 
