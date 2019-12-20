@@ -244,49 +244,25 @@ object Day19 {
     object NeedInput extends Control
 
 
-    // Using dichotomie search
-    def countLeftThenRight(
+    // Using dichotomic search
+    def searchCount(
       programActor: ActorRef[ProgramActor.ProgramMessage],
       listenActor: ActorRef[ListenActor.Response],
-      position: Position,
-      areaLimit: Position,
-      xc: Int, yc: Int,
-      currentX: Int,
-      leftX: Int, rightX: Int,
-      currentAffected: Int,
-      processingLeft:Boolean=true
+      x: Int, y: Int,
+      w: Int, h: Int,
+      count:Int = 0
     ): Behavior[Control] = {
-      if (processingLeft) {
-        val middleX = leftX+(currentX-leftX)/2
-        programActor ! ProgramActor.Input(middleX)
-        programActor ! ProgramActor.Input(yc)
-        Behaviors.receiveMessage {
-          case Output(value) if value == 0 => // Stationary
-            countLeftThenRight(
-              programActor,listenActor,position,areaLimit, xc, yc,
-              currentX, middleX,
-              rightX, currentAffected,true
-            )
-          case Output(value) if value == 1 => // being pulled
-            if (middleX < leftX) {
-              countLeftThenRight(
-                programActor,listenActor,position,areaLimit, xc, yc,
-                middleX, leftX,
-                rightX, currentAffected,true
-              )
-            } else { // Finished on Left
-              countLeftThenRight(
-                programActor,listenActor,position,areaLimit, xc, yc,
-                xc, leftX,
-                rightX, currentAffected+0,false
-              )
-            }
-        }
-      } else { // processingRight
-        val middleX = currentX+(rightX-currentX)/2
-        ???
+      println((x,y,count))
+      programActor ! ProgramActor.Input(x)
+      programActor ! ProgramActor.Input(y)
+      Behaviors.receiveMessage {
+        case Output(value) if x==w-1 && y==h-1 =>
+          println(s"SOLUTION=$value")
+          listenActor ! ListenActor.Response(count+value.toInt)
+          Behaviors.stopped
+        case Output(value) if x==w-1 => searchCount(programActor, listenActor,0, y+1, w, h, count+value.toInt)
+        case Output(value)  => searchCount(programActor, listenActor,x+1, y, w, h, count+value.toInt)
       }
-
     }
 
     def computeAffectedNextLine(
@@ -299,8 +275,8 @@ object Day19 {
       areaLimit match {
         case (w, h) =>
           position match {
-            case (xc, yc) =>
-              countLeftThenRight(programActor, listenActor, position, areaLimit, xc, yc, xc, 0, w - 1, currentAffected)
+            case (xs, ys) =>
+              searchCount(programActor, listenActor, xs, ys, w, h)
           }
       }
     }
