@@ -296,7 +296,7 @@ object Day19 {
         case Output(value) if value == 0 & count > prevLineCount => // Line End, exists from beam zone
           if (debug) print(".\n"+("."*xstart))
           var newSlices = HorizontalSlice(xstart,x-1)::beamHorizontalSlices
-          if (y%1000==0) {
+          if (y%110==0) {
             newSlices = newSlices.take(110)
           } // TODO HARDCODED 110 FOR 100
           checkForResults(listenActor, squareSize, h, y, count, value, newSlices)
@@ -306,7 +306,7 @@ object Day19 {
         case Output(value) if x==w-1 => // Line End, beam rich zone
           if (debug) {if (value==1) print("*\n"+("."*xstart)) else print(".\n"+("."*xstart))}
           var newSlices = HorizontalSlice(xstart,if (value==1) x else x-1)::beamHorizontalSlices
-          if (y%1000==0) {
+          if (y%110==0) {
             newSlices = newSlices.take(110)
           } // TODO HARDCODED 110 FOR 100
           checkForResults(listenActor, squareSize, h, y, count, value, newSlices)
