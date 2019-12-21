@@ -15,3 +15,4 @@ libraryDependencies ++= Seq(
 
 testOptions in Test += Tests.Argument("-oD")
 
+parallelExecution in Test := false

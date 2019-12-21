@@ -247,63 +247,123 @@ object Day19 {
 
     object NeedInput extends Control
 
-
-    def searchClosestSquare(land: Array[Array[Byte]],w:Int,h:Int): Int = {
-      val positions = for{
-        y <- 0.until(h-100)
-        x <- 0.until(w-100)
-        if land(y)(x) > 0
-        if land(y)(x+100) > 0
-        if land(y+100)(x) > 0
-        if land(y+100)(x+100) > 0
-      } yield (x,y)
-
-       positions.map  {case (x,y) => x*10000+y}.min
+    case class HorizontalSlice(xStart:Int,xEnd:Int) {
+      def width = xEnd-xStart+1
     }
 
-    // Using dichotomic search
+    def checkBeamSlides(squareSize: Option[Int], y:Int, slices: List[HorizontalSlice]): Option[Int] = {
+      squareSize.flatMap { size =>
+        slices.drop(size - 1).headOption.flatMap {
+          case upperSlice =>
+            val bottomSlice = slices.head
+            val uxs = upperSlice.xStart
+            val uxe = upperSlice.xEnd
+            val bxs = bottomSlice.xStart
+            val bxe = bottomSlice.xEnd
+            if ( (uxs <= bxs) && (bxs + size - 1  <= uxe) ) {
+              val fx = bxs
+              val fy = y - size + 1
+              System.err.print(s"<$fx $fy>")
+              Some(fx * 10000 + fy)
+            }
+            else None
+        }
+      }
+    }
+
+    val debug=false
+
+    private def checkForResults(listenActor: ActorRef[ListenActor.Response], squareSize: Option[Int], h:Int, y: Int, count: Int, value: BigInt, newBeamHorizontalSlices: List[HorizontalSlice]) = {
+      if (squareSize.isDefined) checkBeamSlides(squareSize, y, newBeamHorizontalSlices).foreach { case result => listenActor ! ListenActor.Response(result)}
+      else if (y == h - 1) listenActor ! ListenActor.Response(count + value.toInt)
+
+    }
     def searchCount(
       programActor: ActorRef[ProgramActor.ProgramMessage],
       listenActor: ActorRef[ListenActor.Response],
-      land:Array[Array[Byte]],
+      squareSize: Option[Int],
+      beamHorizontalSlices:List[HorizontalSlice],
       x: Int, y: Int,
       w: Int, h: Int,
       count:Int = 0,
       prevLineCount:Int=0,
-      xstart:Int=0
+      xstart:Int= 0
     ): Behavior[Control] = {
       programActor ! ProgramActor.Input(x)
       programActor ! ProgramActor.Input(y)
       Behaviors.receiveMessage {
-        case Output(value) if x==w-1 && y==h-1 =>
-          println(s"SOLUTION=$value")
-          val newLand = land.updated(y, land(y).updated(x,value.toByte))
-          listenActor ! ListenActor.Response(count+value.toInt)
-          listenActor ! ListenActor.Response(searchClosestSquare(newLand,w,h))
-          Behaviors.stopped
-        case Output(value) if x==w-1 || (value == 0 & count > prevLineCount)=>
-          val newLand = land.updated(y, land(y).updated(x,value.toByte))
-          searchCount(programActor, listenActor, newLand, xstart, y+1, w, h, count+value.toInt, count+value.toInt, 0)
-        case Output(value) =>
-          val newLand = land.updated(y, land(y).updated(x,value.toByte))
-          val newXstart = if (xstart == 0 && value>0) x else xstart
-          searchCount(programActor, listenActor, newLand, x+1, y, w, h, count+value.toInt, prevLineCount, newXstart)
+        //------------------------------------
+        case Output(value) if value == 0 & count > prevLineCount => // Line End, exists from beam zone
+          if (debug) print(".\n"+("."*xstart))
+          var newSlices = HorizontalSlice(xstart,x-1)::beamHorizontalSlices
+          if (y%1000==0) {
+            newSlices = newSlices.take(110)
+          } // TODO HARDCODED 110 FOR 100
+          checkForResults(listenActor, squareSize, h, y, count, value, newSlices)
+          if (y==h-1) Behaviors.stopped
+          else searchCount(programActor, listenActor, squareSize, newSlices, xstart, y+1, w, h, count, count, xstart)
+        //------------------------------------
+        case Output(value) if x==w-1 => // Line End, beam rich zone
+          if (debug) {if (value==1) print("*\n"+("."*xstart)) else print(".\n"+("."*xstart))}
+          var newSlices = HorizontalSlice(xstart,if (value==1) x else x-1)::beamHorizontalSlices
+          if (y%1000==0) {
+            newSlices = newSlices.take(110)
+          } // TODO HARDCODED 110 FOR 100
+          checkForResults(listenActor, squareSize, h, y, count, value, newSlices)
+          if (y==h-1) Behaviors.stopped
+          else searchCount(programActor, listenActor, squareSize, newSlices, xstart, y+1, w, h, count+value.toInt, count+value.toInt, xstart)
+        //------------------------------------
+        case Output(value) if value==0 => // Line begins, didn't reached the beam area
+          if (debug) print(".")
+          searchCount(programActor, listenActor, squareSize, beamHorizontalSlices, x+1, y, w, h, count, prevLineCount, x+1)
+        //------------------------------------
+        case Output(_) => // in beam area
+          if (debug) print("*")
+          searchCount(programActor, listenActor, squareSize, beamHorizontalSlices, x+1, y, w, h, count+1, prevLineCount, xstart)
       }
     }
+
+
+    def justDump(
+      programActor: ActorRef[ProgramActor.ProgramMessage],
+      listenActor: ActorRef[ListenActor.Response],
+      squareSize: Option[Int],
+      beamHorizontalSlices:List[HorizontalSlice],
+      x: Int, y: Int,
+      w: Int, h: Int
+    ): Behavior[Control] = {
+      programActor ! ProgramActor.Input(x)
+      programActor ! ProgramActor.Input(y)
+      Behaviors.receiveMessage {
+        //------------------------------------
+        case Output(value) if x==w-1 => // Line End
+          if (debug) {if (value==1) println("*") else println(".")}
+          if (y==h-1) Behaviors.stopped
+          else justDump(programActor, listenActor, squareSize, beamHorizontalSlices, 0, y+1, w, h)
+        //------------------------------------
+        case Output(value)  =>
+          if (debug) {if (value ==1) print("*") else print (".")}
+          justDump(programActor, listenActor, squareSize, beamHorizontalSlices, x+1, y, w, h)
+      }
+    }
+
+
+
+
 
     def computeAffectedNextLine(
       programActor: ActorRef[ProgramActor.ProgramMessage],
       listenActor: ActorRef[ListenActor.Response],
       position: Position,
       areaLimit: Position,
-      currentAffected: Int
+      squareSize: Option[Int]
     ): Behavior[Control] = {
       areaLimit match {
         case (w, h) =>
           position match {
             case (xs, ys) =>
-              val land = Array.fill(h)(Array.fill(w)(0.toByte))
-              searchCount(programActor, listenActor, land, xs, ys, w, h)
+              searchCount(programActor, listenActor,squareSize, Nil, xs, ys, w, h)
+              //justDump(programActor, listenActor,squareSize, Nil, xs, ys, w, h)
           }
       }
     }
@@ -311,12 +371,12 @@ object Day19 {
     def apply(
       code: Code,
       listenActor: ActorRef[ListenActor.Response],
-      areaLimit: Position = (50, 50)
+      areaLimit: Position,
+      squareSize: Option[Int]
     ): Behavior[Control] = Behaviors.setup { context =>
       val programActor = context.spawn(ProgramActor(code), "program")
       programActor ! ProgramActor.Setup(Some(context.self), Some(context.self))
-
-      computeAffectedNextLine(programActor, listenActor, (0, 0), areaLimit, 1)
+      computeAffectedNextLine(programActor, listenActor, (0, 0), areaLimit, squareSize)
     }
   }
 
