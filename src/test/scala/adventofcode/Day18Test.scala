@@ -53,6 +53,32 @@ class Day18Test extends WordSpec with Matchers {
           }
       }
 
+      "all choices function" should {
+        "work on sample1" in {
+          val sample =
+            """#########
+              |#b.A.@.a#
+              |#########""".stripMargin
+          val lab = Land(sample)
+          buildAllChoicesFrom(lab.startPosition().get, lab) should contain allOf(
+            List(Choice(ItemPos(Item('A'),(3,1)),2), Choice(ItemPos(Item('b'),(1,1)),4)),
+            List(Choice(ItemPos(Item('a'),(7,1)),2)),
+          )
+        }
+        "work on sample2" in {
+          val sample =
+            """############
+              |#b.A...@..a#
+              |############""".stripMargin
+          val lab = Land(sample)
+          buildAllChoicesFrom(lab.startPosition().get, lab) should contain allOf(
+            List(Choice(ItemPos(Item('A'),(3,1)),4), Choice(ItemPos(Item('b'),(1,1)),6)),
+            List(Choice(ItemPos(Item('a'),(10,1)),3))
+          )
+        }
+
+      }
+
       "choices function" should {
         "work on sample1" in {
           val sample =
@@ -60,7 +86,8 @@ class Day18Test extends WordSpec with Matchers {
               |#b.A.@.a#
               |#########""".stripMargin
           val lab = Land(sample)
-          searchChoices(lab.startPosition().get, lab) should contain allOf(
+          val allChoices = buildAllChoices(lab)
+          searchChoices(lab.startPosition().get, lab, allChoices) should contain allOf(
             Choice(ItemPos(Item('A'),(3,1)), 2),
             Choice(ItemPos(Item('a'),(7,1)), 2),
           )
@@ -71,7 +98,8 @@ class Day18Test extends WordSpec with Matchers {
               |#b.A...@..a#
               |############""".stripMargin
           val lab = Land(sample)
-          searchChoices(lab.startPosition().get, lab) should contain allOf(
+          val allChoices = buildAllChoices(lab)
+          searchChoices(lab.startPosition().get, lab, allChoices) should contain allOf(
             Choice(ItemPos(Item('A'),(3,1)), 4),
             Choice(ItemPos(Item('a'),(10,1)), 3),
           )
