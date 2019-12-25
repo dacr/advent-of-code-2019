@@ -78,7 +78,6 @@ object Day18 {
 
 
   case class Land(zones: Vector[Vector[Tile]]) {
-
     val width = zones.head.size
     val height = zones.size
 
@@ -178,6 +177,18 @@ object Day18 {
       .getOrElse(from,Nil)
       .map(fromChoices => fromChoices.dropWhile(choice => removedItems.contains(choice.itemPos.item)))
       .flatMap(_.headOption)
+//    var validChoices = List.empty[Choice]
+//    allChoices.get(from) match {
+//      case None =>
+//      case Some(allChoicePathsForPosition) =>
+//        for {
+//          choicePaths <- allChoicePathsForPosition
+//          choice <- choicePaths.find(current => ! removedItems.contains(current.itemPos.item))
+//        } {
+//          validChoices ::= choice
+//        }
+//    }
+//    validChoices
   }
 
   def solve(labyrinthString:String):List[Solution] = {
@@ -193,8 +204,8 @@ object Day18 {
     var squeezed = 0
 
     @inline def stopHeuristicCond(distance:Int, collectKeys:Vector[Item]):Boolean = {
-      distance >= currentBestDistance // to get first best solution with shortest path
-      //distance > currentBestDistance // to all best solution with the same shortest path
+      //distance >= currentBestDistance // to get first best solution with shortest path
+      distance > currentBestDistance // to all best solution with the same shortest path
     }
 
     def explore(pos:Position, lab:Land, distance:Int, availableKeys:Set[Char], collectedKeys:Vector[Item], removedItems:Set[Item]):Unit = {
@@ -205,10 +216,12 @@ object Day18 {
         val choices = searchChoices(pos, lab, allChoices, removedItems)
         if (choices.isEmpty) {
           val solution = Solution(distance, collectedKeys)
-          if (distance < currentBestDistance) currentBestSolutions = Nil
+          if (distance < currentBestDistance) {
+            currentBestSolutions = Nil
+            println(s"new best solution : $solution ($squeezed)")
+          }
           currentBestDistance = distance
           currentBestSolutions ::= solution
-          println(s"currentBest : $solution #${currentBestSolutions.size} ($squeezed)")
         } else {
           // Either collect new keys or open doors
           choices.foreach {
